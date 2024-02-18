@@ -1,0 +1,26 @@
+.text {
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	/* align-items: center; */
+	position: absolute;
+	top: 0;
+	left: 0;
+	padding-left: 8vw;
+	width: 45%;
+	height: 100%;
+	pointer-events: none;
+}
+.text h1 {
+	width: 200px;
+	text-align: left;
+	margin: 10px 0;
+	font-size: 6vw;
+	font-weight: 300;
+}
+
+.text p {
+	font-size: 2vw;
+	line-height: 2.8vw;
+	font-weight: 300;
+}
