@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 
-const cylinderLathe = ({ args = [2, 1, 4] }) => {
+const RingGeometry = ({ args = [2, 1, 4] }) => {
 	const [R, r, h] = args;
 	let halfH = h * 0.5;
 
@@ -17,8 +17,8 @@ const cylinderLathe = ({ args = [2, 1, 4] }) => {
 
 declare global {
 	namespace JSX {
-		interface CylinderLathe extends THREE.LatheGeometry {}
+		interface RingGeometry extends THREE.LatheGeometry {}
 	}
 }
 
-export default cylinderLathe;
+export default RingGeometry;

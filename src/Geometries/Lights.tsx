@@ -9,46 +9,48 @@ export default function Lights() {
 	// useHelper(directionalLight, THREE.DirectionalLightHelper, 1, '#fff');
 
 	const { position } = useControls('Light', {
-		position: [-2.5, 5, 5],
+		position: [5, 1.56, 5.94],
 	});
 
 	return (
 		<>
 			<ambientLight intensity={0.5} />
 			<directionalLight
+				intensity={2}
+				position={[-1.3, 1.56, 5.94]}
+				castShadow
+			/>
+
+			<directionalLight
 				ref={directionalLight}
-				intensity={3}
+				intensity={2}
 				position={position}
 				castShadow
 			/>
 
 			<Environment files='assets/HDRIs/aerodynamics_workshop_1k.hdr'>
-				<Lightformer
-					position={[-10, 0, 10]}
-					scale={10}
-					color='#ffffff'
-					intensity={4}
-					form='ring'
-				/>
-				<Lightformer
-					position={[10, -10, 10]}
-					scale={10}
-					color='#ffffff'
-					intensity={4}
-					form='ring'
-				/>
+				{/* left-down-back */}
 				<Lightformer
 					position={[-10, -10, -10]}
 					scale={10}
 					color='#ffffff'
-					intensity={4}
+					intensity={3}
+					form='ring'
+				/>
+
+				{/* left-up-front */}
+				<Lightformer
+					position={[-10, 10, 10]}
+					scale={3}
+					color='#ffffff'
+					intensity={50}
 					form='ring'
 				/>
 				<Lightformer
-					position={[-10, 10, -10]}
-					scale={10}
+					position={[0, -10, 10]}
+					scale={100}
 					color='#ffffff'
-					intensity={4}
+					intensity={10}
 					form='ring'
 				/>
 			</Environment>
