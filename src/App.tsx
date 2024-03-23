@@ -1,4 +1,4 @@
-// import { Leva } from 'leva';
+import { Leva } from 'leva';
 import './App.css';
 // import Geometries from './Geometries';
 import LivingRoom from './LivingRoom';
@@ -6,7 +6,7 @@ import LivingRoom from './LivingRoom';
 function App() {
 	return (
 		<>
-			{/* <Leva collapsed /> */}
+			<Leva />
 			{/* <Geometries /> */}
 			<LivingRoom />
 		</>

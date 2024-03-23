@@ -9,7 +9,7 @@ export default function LivingRoom() {
 				shadows
 			>
 				<color
-					args={['rgb(190, 167, 167)']}
+					args={['#dcdfd1']}
 					attach='background'
 				/>
 

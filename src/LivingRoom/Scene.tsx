@@ -9,6 +9,8 @@ import { useThree } from '@react-three/fiber';
 import { useSpring } from '@react-spring/three';
 
 export function Scene() {
+	const { camera } = useThree();
+
 	const { nodes } = useGLTF('assets/models/LivingRoom/Isometric_Bedroom.glb');
 	const bakedTexture = useTexture('assets/models/LivingRoom/baked.jpg');
 	const photoTexture = useTexture('assets/models/LivingRoom/WechatIMG339.jpeg');
@@ -21,7 +23,6 @@ export function Scene() {
 	photoPosition.z += 0.07;
 	photoRotation.x -= 0.13;
 
-	const { camera } = useThree();
 	useSpring(
 		() => ({
 			from: { y: camera.position.y + 20 },
@@ -183,21 +184,13 @@ export function Scene() {
 						<meshBasicMaterial color='#ffffe5' />
 					</mesh>
 
-					{/* <mesh
-				geometry={(nodes.mirror002 as THREE.Mesh).geometry}
-				position={(nodes.mirror002 as THREE.Mesh).position}
-				rotation={(nodes.mirror002 as THREE.Mesh).rotation}
-			>
-				<meshBasicMaterial color='#222' />
-			</mesh> */}
-
-					{/* <mesh
-						geometry={(nodes.photo_portrait002 as THREE.Mesh).geometry}
-						position={(nodes.photo_portrait002 as THREE.Mesh).position}
-						rotation={(nodes.photo_portrait002 as THREE.Mesh).rotation}
-					>
-						<meshBasicMaterial map={photoTexture} />
-					</mesh> */}
+					<mesh geometry={(nodes.laptop_screen002 as THREE.Mesh).geometry}>
+						<meshStandardMaterial
+							color='#fff'
+							metalness={0}
+							roughness={0.2}
+						/>
+					</mesh>
 
 					<mesh
 						position={photoPosition}
