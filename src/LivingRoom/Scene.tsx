@@ -13,16 +13,13 @@ export function Scene() {
 	const bakedTexture = useTexture('assets/models/LivingRoom/baked.jpg');
 	const photoTexture = useTexture('assets/models/LivingRoom/WechatIMG339.jpeg');
 	// const env = useEnvironment({ preset: 'city' });
+	// photoTexture.repeat.set(1, 1);
 
 	const photoPosition = new THREE.Vector3().copy(nodes.photo_portrait002.position);
 	const photoRotation = new THREE.Euler().copy(nodes.photo_portrait002.rotation);
 	photoPosition.x += 0.055;
 	photoPosition.z += 0.07;
 	photoRotation.x -= 0.13;
-	console.log(photoPosition);
-
-	// photoTexture.repeat.set(1, 1);
-	console.log(nodes.mirror002);
 
 	const { camera } = useThree();
 	useSpring(
@@ -64,9 +61,9 @@ export function Scene() {
 						<MeshReflectorMaterial
 							blur={[0, 0]} // Blur ground reflections (width, height), 0 skips blur
 							mixBlur={0} // How much blur mixes with surface roughness (default = 1)
-							mixStrength={1} // Strength of the reflections
+							mixStrength={8} // Strength of the reflections
 							mixContrast={1} // Contrast of the reflections
-							resolution={512} // Off-buffer resolution, lower=faster, higher=better quality, slower
+							resolution={1024} // Off-buffer resolution, lower=faster, higher=better quality, slower
 							mirror={0} // Mirror environment, 0 = texture colors, 1 = pick up env colors
 							depthScale={0} // Scale the depth factor (0 = no depth, default = 0)
 							minDepthThreshold={0.9} // Lower edge for the depthTexture interpolation (default = 0)
