@@ -1,5 +1,6 @@
 import { Canvas } from '@react-three/fiber';
 import { Scene } from './Scene';
+// import { OrbitControls } from '@react-three/drei';
 
 export default function LivingRoom() {
 	return (
@@ -12,6 +13,8 @@ export default function LivingRoom() {
 					args={['#dcdfd1']}
 					attach='background'
 				/>
+
+				{/* <OrbitControls makeDefault /> */}
 
 				{/* <ambientLight /> */}
 				{/* <directionalLight castShadow /> */}

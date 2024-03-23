@@ -7,6 +7,7 @@ import {
 } from '@react-three/drei';
 import { useThree } from '@react-three/fiber';
 import { useSpring } from '@react-spring/three';
+// import { RGBELoader } from 'three/addons/loaders/RGBELoader.js';
 
 export function Scene() {
 	const { camera } = useThree();
@@ -14,6 +15,7 @@ export function Scene() {
 	const { nodes } = useGLTF('assets/models/LivingRoom/Isometric_Bedroom.glb');
 	const bakedTexture = useTexture('assets/models/LivingRoom/baked.jpg');
 	const photoTexture = useTexture('assets/models/LivingRoom/WechatIMG339.jpeg');
+	// const HDRITexture = useLoader(RGBELoader, 'assets/HDRIs/aerodynamics_workshop_1k.hdr');
 	// const env = useEnvironment({ preset: 'city' });
 	// photoTexture.repeat.set(1, 1);
 
@@ -41,7 +43,12 @@ export function Scene() {
 
 	return (
 		<>
-			<ambientLight intensity={0.25} />
+			<ambientLight intensity={0.1} />
+			<directionalLight
+				intensity={0.15}
+				color={0xfff0dd}
+				position={[0, 5, 10]}
+			/>
 
 			<PresentationControls
 				global
@@ -200,6 +207,24 @@ export function Scene() {
 						<planeGeometry args={[1, 1, 1]} />
 						<meshBasicMaterial map={photoTexture} />
 					</mesh>
+
+					{/* Window glasses */}
+					{/* <mesh position={[-2.4, 3, -0.4]}>
+						<boxGeometry args={[0.1, 1.4, 0.8]} />
+						<meshPhysicalMaterial
+							roughness={0.3}
+							transmission={1}
+							thickness={0.5}
+						/>
+					</mesh>
+					<mesh position={[-2.4, 3, -1.22]}>
+						<boxGeometry args={[0.1, 1.4, 0.8]} />
+						<meshPhysicalMaterial
+							roughness={0.3}
+							transmission={1}
+							thickness={0.5}
+						/>
+					</mesh> */}
 				</group>
 			</PresentationControls>
 		</>
