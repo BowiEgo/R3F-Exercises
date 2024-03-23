@@ -1,6 +1,6 @@
-import { Leva } from 'leva';
+// import { Leva } from 'leva';
 import './App.css';
-import Geometries from './Geometries';
+// import Geometries from './Geometries';
 import LivingRoom from './LivingRoom';
 
 function App() {
