@@ -96,7 +96,11 @@ export function Scene() {
 						position={(nodes.curtain002 as THREE.Mesh).position}
 						rotation={(nodes.curtain002 as THREE.Mesh).rotation}
 					>
-						<meshBasicMaterial color='#ffffe5' />
+						<meshBasicMaterial
+							color='#ffffe5'
+							transparent={true}
+							opacity={0.8}
+						/>
 					</mesh>
 
 					<mesh
