@@ -1,16 +1,6 @@
 import * as THREE from 'three';
-import {
-	ContactShadows,
-	Decal,
-	Environment,
-	MeshTransmissionMaterial,
-	useAnimations,
-	useCursor,
-	useGLTF,
-	useTexture,
-} from '@react-three/drei';
-import { useFrame } from '@react-three/fiber';
-import { ReactElement, useEffect, useRef, useState } from 'react';
+import { ContactShadows, Decal, Environment, useGLTF, useTexture } from '@react-three/drei';
+import { ReactElement } from 'react';
 import { useControls } from 'leva';
 import decalData from './decal';
 
