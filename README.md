@@ -1,7 +1,7 @@
 # React Three Fiber Exercise
 
 ![SCR-20240401-omcb.jpeg](https://img2.imgtp.com/2024/04/01/mMif6qEf.jpeg)
-![SCR-20240401-oinj.jpeg](https://img2.imgtp.com/2024/04/01/QpCqBgU0.jpeg)
+![SCR-20240401-otdq.jpeg](https://img2.imgtp.com/2024/04/01/f5ynkEFw.jpeg)
 
 ## Links
 
