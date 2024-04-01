@@ -1,14 +1,16 @@
 import { Leva } from 'leva';
 import './App.css';
 // import Geometries from './Geometries';
-import LivingRoom from './LivingRoom';
+// import LivingRoom from './LivingRoom';
+import Keyboard from './Keyboard';
 
 function App() {
 	return (
 		<>
 			<Leva />
 			{/* <Geometries /> */}
-			<LivingRoom />
+			{/* <LivingRoom /> */}
+			<Keyboard />
 		</>
 	);
 }
