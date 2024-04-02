@@ -36,7 +36,7 @@ export function Scene() {
 		showKnob,
 		showKnobHolder,
 		showTopCase,
-		showPlate,
+		// showPlate,
 		showIXPEFoam,
 		showPETFilm,
 		showBottomCase,
@@ -70,10 +70,12 @@ export function Scene() {
 				far={0.8}
 			/>
 
-			<Switches
-				nodes={nodes}
-				color={new THREE.Color('#e22626')}
-			/>
+			{showSwitches && (
+				<Switches
+					nodes={nodes}
+					color={new THREE.Color(switchColor)}
+				/>
+			)}
 
 			{showKeycaps && <KeycapList nodes={nodes} />}
 

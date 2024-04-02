@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { Merged } from '@react-three/drei';
-import { ReactElement, createContext, useContext, useMemo, useRef, useState } from 'react';
+import { ReactElement, createContext, useContext, useMemo, useRef } from 'react';
 // import { data, switchData } from './store';
 
 const context = createContext(null);
@@ -155,35 +155,35 @@ function Instances({
 	);
 }
 
-const config = {
-	backside: false,
-	samples: 16,
-	resolution: 256,
-	transmission: 0.75,
-	roughness: 0.3,
-	clearcoat: 0.1,
-	clearcoatRoughness: 0.1,
-	thickness: 200,
-	backsideThickness: 200,
-	ior: 1.03,
-	chromaticAberration: 0,
-	anisotropy: 1,
-	distortion: 0,
-	distortionScale: 0.2,
-	min: 0.01,
-	max: 1,
-	step: 0.01,
-	temporalDistortion: 0,
-	attenuationDistance: 0.5,
-	attenuationColor: '#ffffff',
-	color: '#ffffff',
-};
+// const config = {
+// 	backside: false,
+// 	samples: 16,
+// 	resolution: 256,
+// 	transmission: 0.75,
+// 	roughness: 0.3,
+// 	clearcoat: 0.1,
+// 	clearcoatRoughness: 0.1,
+// 	thickness: 200,
+// 	backsideThickness: 200,
+// 	ior: 1.03,
+// 	chromaticAberration: 0,
+// 	anisotropy: 1,
+// 	distortion: 0,
+// 	distortionScale: 0.2,
+// 	min: 0.01,
+// 	max: 1,
+// 	step: 0.01,
+// 	temporalDistortion: 0,
+// 	attenuationDistance: 0.5,
+// 	attenuationColor: '#ffffff',
+// 	color: '#ffffff',
+// };
 
 function Model({ random, ...props }: { random?: number }) {
 	const instances = useContext(context) as any;
 
 	const ref = useRef<THREE.Group>(null);
-	const [hovered, setHover] = useState(false);
+	// const [hovered, setHover] = useState(false);
 	// useFrame((state) => {
 	// 	const t = state.clock.getElapsedTime() + random * 10000;
 	// 	if (ref.current) {
@@ -209,8 +209,8 @@ function Model({ random, ...props }: { random?: number }) {
 		<group
 			ref={ref}
 			{...props}
-			onPointerOver={(e) => (e.stopPropagation(), setHover(true))}
-			onPointerOut={(e) => setHover(false)}
+			// onPointerOver={(e) => (e.stopPropagation(), setHover(true))}
+			// onPointerOut={(e) => setHover(false)}
 			frustumCulled={false}
 		>
 			{instances && (
