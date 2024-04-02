@@ -1,9 +1,10 @@
 import * as THREE from 'three';
 import { ContactShadows, Decal, Environment, useGLTF, useTexture } from '@react-three/drei';
-import { ReactElement } from 'react';
+import { ReactElement, useState } from 'react';
 import { useControls } from 'leva';
 import decalData from './decal';
 import { Switches } from './Switches';
+import { useFrame } from '@react-three/fiber';
 
 const colorThemes = [
 	[
@@ -40,18 +41,32 @@ export function Scene() {
 		showIXPEFoam,
 		showPETFilm,
 		showBottomCase,
+		isSwitchesQueued,
 	} = useControls({
 		knobColor: '#be806e',
 		switchColor: '#e22626',
 		showKeycaps: false,
 		showSwitches: true,
 		showKnob: false,
-		showKnobHolder: false,
-		showTopCase: false,
-		showPlate: false,
-		showIXPEFoam: false,
-		showPETFilm: false,
-		showBottomCase: false,
+		showKnobHolder: true,
+		showTopCase: true,
+		showPlate: true,
+		showIXPEFoam: true,
+		showPETFilm: true,
+		showBottomCase: true,
+		isSwitchesQueued: false,
+	});
+
+	const [bottomCaseOpacity, setBottomCaseOpacity] = useState(0);
+
+	useFrame((_state) => {
+		setBottomCaseOpacity(
+			THREE.MathUtils.lerp(
+				bottomCaseOpacity,
+				isSwitchesQueued ? 1 : 0,
+				isSwitchesQueued ? 0.01 : 1
+			)
+		);
 	});
 
 	return (
@@ -64,7 +79,7 @@ export function Scene() {
 
 			<ContactShadows
 				position={[0, -0.8, 0]}
-				opacity={0.8}
+				opacity={bottomCaseOpacity}
 				scale={10}
 				blur={1.5}
 				far={0.8}
@@ -74,6 +89,7 @@ export function Scene() {
 				<Switches
 					nodes={nodes}
 					color={new THREE.Color(switchColor)}
+					isQueued={isSwitchesQueued}
 				/>
 			)}
 
@@ -95,6 +111,8 @@ export function Scene() {
 					material-metalness={0.4}
 					material-roughness={1}
 					// material-roughnessMap={knobRoughness}
+					material-transparent={true}
+					material-opacity={bottomCaseOpacity}
 					castShadow={false}
 				/>
 			)}
@@ -104,6 +122,8 @@ export function Scene() {
 					geometry={(nodes['E-100_Holder'] as THREE.Mesh).geometry}
 					material={(nodes['E-100_Holder'] as THREE.Mesh).material}
 					position={(nodes['E-100_Holder'] as THREE.Mesh).position}
+					material-transparent={true}
+					material-opacity={bottomCaseOpacity}
 					castShadow={false}
 				/>
 			)}
@@ -113,6 +133,8 @@ export function Scene() {
 					geometry={(nodes.TopCase as THREE.Mesh).geometry}
 					material={(nodes.TopCase as THREE.Mesh).material}
 					position={(nodes.TopCase as THREE.Mesh).position}
+					material-transparent={true}
+					material-opacity={bottomCaseOpacity}
 					castShadow={false}
 				/>
 			)}
@@ -122,6 +144,8 @@ export function Scene() {
 					geometry={(nodes.Plate as THREE.Mesh).geometry}
 					material={(nodes.Plate as THREE.Mesh).material}
 					position={(nodes.Plate as THREE.Mesh).position}
+					material-transparent={true}
+					material-opacity={bottomCaseOpacity}
 					castShadow={false}
 				/>
 			)}
@@ -131,6 +155,8 @@ export function Scene() {
 					geometry={(nodes.IXPEFoam as THREE.Mesh).geometry}
 					material={(nodes.IXPEFoam as THREE.Mesh).material}
 					position={(nodes.IXPEFoam as THREE.Mesh).position}
+					material-transparent={true}
+					material-opacity={bottomCaseOpacity}
 					castShadow={false}
 				/>
 			)}
@@ -140,6 +166,8 @@ export function Scene() {
 					geometry={(nodes.PETFilm as THREE.Mesh).geometry}
 					material={(nodes.PETFilm as THREE.Mesh).material}
 					position={(nodes.PETFilm as THREE.Mesh).position}
+					material-transparent={true}
+					material-opacity={bottomCaseOpacity}
 					castShadow={false}
 				/>
 			)}
@@ -150,18 +178,24 @@ export function Scene() {
 						geometry={(nodes.BottomCase as THREE.Mesh).geometry}
 						material={(nodes.BottomCase as THREE.Mesh).material}
 						position={(nodes.BottomCase as THREE.Mesh).position}
+						material-transparent={true}
+						material-opacity={bottomCaseOpacity}
 						castShadow={false}
 					/>
 					<mesh
 						geometry={(nodes.BottomCase_Plate as THREE.Mesh).geometry}
 						material={(nodes.BottomCase_Plate as THREE.Mesh).material}
 						position={(nodes.BottomCase_Plate as THREE.Mesh).position}
+						material-transparent={true}
+						material-opacity={bottomCaseOpacity}
 						castShadow={false}
 					/>
 					<mesh
 						geometry={(nodes.BottomCase_Screws as THREE.Mesh).geometry}
 						material={(nodes.BottomCase_Screws as THREE.Mesh).material}
 						position={(nodes.BottomCase_Screws as THREE.Mesh).position}
+						material-transparent={true}
+						material-opacity={bottomCaseOpacity}
 						castShadow={false}
 					/>
 				</>

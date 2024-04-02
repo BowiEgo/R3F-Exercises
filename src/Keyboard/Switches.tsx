@@ -1,18 +1,20 @@
 import * as THREE from 'three';
-import { Merged } from '@react-three/drei';
 import { ReactElement, createContext, useContext, useMemo, useRef } from 'react';
-import { data, switchData } from './store';
-import { useControls } from 'leva';
+import { Merged } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
-// import { data, switchData } from './store';
+import { data, switchData } from './store';
 
 const context = createContext(null);
 
-export function Switches({ nodes, color }: { nodes: any; color: THREE.Color }) {
-	const { isQueued } = useControls({
-		isQueued: false,
-	});
-
+export function Switches({
+	nodes,
+	color,
+	isQueued,
+}: {
+	nodes: any;
+	color: THREE.Color;
+	isQueued: boolean;
+}) {
 	return (
 		<Instances
 			nodes={nodes}

@@ -11,7 +11,7 @@ export default function LivingRoom() {
 	return (
 		<>
 			<Canvas
-				camera={{ position: [0, 6, 1], fov: 45, near: 0.01 }}
+				camera={{ position: [-5, 4, 4], fov: 45, near: 0.01 }}
 				shadows
 			>
 				<color
