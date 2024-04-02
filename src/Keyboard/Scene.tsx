@@ -3,6 +3,7 @@ import { ContactShadows, Decal, Environment, useGLTF, useTexture } from '@react-
 import { ReactElement } from 'react';
 import { useControls } from 'leva';
 import decalData from './decal';
+import { Switches } from './Switches';
 
 const colorThemes = [
 	[
@@ -26,34 +27,6 @@ export function Scene() {
 	const model = useGLTF('assets/models/Keyboard/Keychron Q1 Max.glb');
 	const { nodes } = model;
 	// console.log(nodes);
-
-	// nodes.Scene.children.forEach((child) => {
-	// 	if (child instanceof THREE.Mesh && child.name.indexOf('Keycap') > -1) {
-	// 		if (child.name.indexOf('Primary') > -1) {
-	// 			child.material = keyCapsPrimaryMaterial;
-	// 		}
-	// 		if (child.name.indexOf('Secondary') > -1) {
-	// 			child.material = keyCapsSecondaryyMaterial;
-	// 		}
-	// 		if (child.name.indexOf('Tertiary') > -1) {
-	// 			child.material = keyCapsTertiaryMaterial;
-	// 		}
-	// 	}
-	// 	child.castShadow = false;
-	// 	child.receiveShadow = false;
-
-	// 	if (child instanceof THREE.Mesh && child.name.indexOf('BottomCase') > -1) {
-	// 		// child.castShadow = true;
-	// 	}
-	// });
-
-	// useEffect(() => {
-	// 	for (const [actionName, action] of Object.entries(animation.actions)) {
-	// 		// if (actionName === 'BottomCaseAction.001') {
-	// 		action?.reset().fadeIn(0.5).play();
-	// 		// }
-	// 	}
-	// }, []);
 
 	const {
 		knobColor,
@@ -97,14 +70,19 @@ export function Scene() {
 				far={0.8}
 			/>
 
+			<Switches
+				nodes={nodes}
+				color={new THREE.Color('#e22626')}
+			/>
+
 			{showKeycaps && <KeycapList nodes={nodes} />}
 
-			{showSwitches && (
+			{/* {showSwitches && (
 				<SwitchList
 					nodes={nodes}
 					color={switchColor}
 				/>
-			)}
+			)} */}
 
 			{showKnob && (
 				<mesh
@@ -115,6 +93,7 @@ export function Scene() {
 					material-metalness={0.4}
 					material-roughness={1}
 					// material-roughnessMap={knobRoughness}
+					castShadow={false}
 				/>
 			)}
 
@@ -123,6 +102,7 @@ export function Scene() {
 					geometry={(nodes['E-100_Holder'] as THREE.Mesh).geometry}
 					material={(nodes['E-100_Holder'] as THREE.Mesh).material}
 					position={(nodes['E-100_Holder'] as THREE.Mesh).position}
+					castShadow={false}
 				/>
 			)}
 
@@ -131,22 +111,25 @@ export function Scene() {
 					geometry={(nodes.TopCase as THREE.Mesh).geometry}
 					material={(nodes.TopCase as THREE.Mesh).material}
 					position={(nodes.TopCase as THREE.Mesh).position}
+					castShadow={false}
 				/>
 			)}
 
-			{showPlate && (
+			{/* {showPlate && (
 				<mesh
 					geometry={(nodes.Plate as THREE.Mesh).geometry}
 					material={(nodes.Plate as THREE.Mesh).material}
 					position={(nodes.Plate as THREE.Mesh).position}
+					castShadow={false}
 				/>
-			)}
+			)} */}
 
 			{showIXPEFoam && (
 				<mesh
 					geometry={(nodes.IXPEFoam as THREE.Mesh).geometry}
 					material={(nodes.IXPEFoam as THREE.Mesh).material}
 					position={(nodes.IXPEFoam as THREE.Mesh).position}
+					castShadow={false}
 				/>
 			)}
 
@@ -155,6 +138,7 @@ export function Scene() {
 					geometry={(nodes.PETFilm as THREE.Mesh).geometry}
 					material={(nodes.PETFilm as THREE.Mesh).material}
 					position={(nodes.PETFilm as THREE.Mesh).position}
+					castShadow={false}
 				/>
 			)}
 
@@ -164,16 +148,19 @@ export function Scene() {
 						geometry={(nodes.BottomCase as THREE.Mesh).geometry}
 						material={(nodes.BottomCase as THREE.Mesh).material}
 						position={(nodes.BottomCase as THREE.Mesh).position}
+						castShadow={false}
 					/>
 					<mesh
 						geometry={(nodes.BottomCase_Plate as THREE.Mesh).geometry}
 						material={(nodes.BottomCase_Plate as THREE.Mesh).material}
 						position={(nodes.BottomCase_Plate as THREE.Mesh).position}
+						castShadow={false}
 					/>
 					<mesh
 						geometry={(nodes.BottomCase_Screws as THREE.Mesh).geometry}
 						material={(nodes.BottomCase_Screws as THREE.Mesh).material}
 						position={(nodes.BottomCase_Screws as THREE.Mesh).position}
+						castShadow={false}
 					/>
 				</>
 			)}
@@ -304,80 +291,80 @@ function KeycapList({ nodes }: { nodes: any }) {
 	);
 }
 
-function SwitchList({ nodes, color }: { nodes: any; color: string | THREE.Color }) {
-	// const config = useControls({
-	// 	backside: false,
-	// 	samples: { value: 16, min: 1, max: 32, step: 1 },
-	// 	resolution: { value: 256, min: 64, max: 2048, step: 64 },
-	// 	transmission: { value: 0.75, min: 0, max: 1 },
-	// 	roughness: { value: 0.3, min: 0, max: 1, step: 0.01 },
-	// 	clearcoat: { value: 0.1, min: 0, max: 1, step: 0.01 },
-	// 	clearcoatRoughness: { value: 0.1, min: 0, max: 1, step: 0.01 },
-	// 	thickness: { value: 200, min: 0, max: 200, step: 0.01 },
-	// 	backsideThickness: { value: 200, min: 0, max: 200, step: 0.01 },
-	// 	ior: { value: 1.03, min: 1, max: 5, step: 0.01 },
-	// 	chromaticAberration: { value: 0, min: 0, max: 1 },
-	// 	anisotropy: { value: 1, min: 0, max: 10, step: 0.01 },
-	// 	distortion: { value: 0, min: 0, max: 1, step: 0.01 },
-	// 	distortionScale: { value: 0.2, min: 0.01, max: 1, step: 0.01 },
-	// 	temporalDistortion: { value: 0, min: 0, max: 1, step: 0.01 },
-	// 	attenuationDistance: { value: 0.5, min: 0, max: 10, step: 0.01 },
-	// 	attenuationColor: '#ffffff',
-	// 	color: '#ffffff',
-	// });
+// function SwitchList({ nodes, color }: { nodes: any; color: string | THREE.Color }) {
+// 	// const config = useControls({
+// 	// 	backside: false,
+// 	// 	samples: { value: 16, min: 1, max: 32, step: 1 },
+// 	// 	resolution: { value: 256, min: 64, max: 2048, step: 64 },
+// 	// 	transmission: { value: 0.75, min: 0, max: 1 },
+// 	// 	roughness: { value: 0.3, min: 0, max: 1, step: 0.01 },
+// 	// 	clearcoat: { value: 0.1, min: 0, max: 1, step: 0.01 },
+// 	// 	clearcoatRoughness: { value: 0.1, min: 0, max: 1, step: 0.01 },
+// 	// 	thickness: { value: 200, min: 0, max: 200, step: 0.01 },
+// 	// 	backsideThickness: { value: 200, min: 0, max: 200, step: 0.01 },
+// 	// 	ior: { value: 1.03, min: 1, max: 5, step: 0.01 },
+// 	// 	chromaticAberration: { value: 0, min: 0, max: 1 },
+// 	// 	anisotropy: { value: 1, min: 0, max: 10, step: 0.01 },
+// 	// 	distortion: { value: 0, min: 0, max: 1, step: 0.01 },
+// 	// 	distortionScale: { value: 0.2, min: 0.01, max: 1, step: 0.01 },
+// 	// 	temporalDistortion: { value: 0, min: 0, max: 1, step: 0.01 },
+// 	// 	attenuationDistance: { value: 0.5, min: 0, max: 10, step: 0.01 },
+// 	// 	attenuationColor: '#ffffff',
+// 	// 	color: '#ffffff',
+// 	// });
 
-	const switchList = [];
-	for (let i = 0; i <= 81; i++) {
-		const suffix = i === 0 ? '' : determineNumLength(i, '000');
+// 	const switchList = [];
+// 	for (let i = 0; i <= 81; i++) {
+// 		const suffix = i === 0 ? '' : determineNumLength(i, '000');
 
-		switchList.push(
-			<group key={i}>
-				<mesh
-					geometry={(nodes[`Switch${suffix}`] as THREE.Mesh).geometry}
-					material={(nodes[`Switch${suffix}`] as THREE.Mesh).material}
-					position={(nodes[`Switch${suffix}`] as THREE.Mesh).position}
-				></mesh>
+// 		switchList.push(
+// 			<group key={i}>
+// 				<mesh
+// 					geometry={(nodes[`Switch${suffix}`] as THREE.Mesh).geometry}
+// 					material={(nodes[`Switch${suffix}`] as THREE.Mesh).material}
+// 					position={(nodes[`Switch${suffix}`] as THREE.Mesh).position}
+// 				></mesh>
 
-				<mesh
-					geometry={(nodes[`Switch${suffix}_1`] as THREE.Mesh).geometry}
-					material={(nodes[`Switch${suffix}_1`] as THREE.Mesh).material}
-					position={(nodes[`Switch${suffix}_1`] as THREE.Mesh).position}
-				></mesh>
+// 				<mesh
+// 					geometry={(nodes[`Switch${suffix}_1`] as THREE.Mesh).geometry}
+// 					material={(nodes[`Switch${suffix}_1`] as THREE.Mesh).material}
+// 					position={(nodes[`Switch${suffix}_1`] as THREE.Mesh).position}
+// 				></mesh>
 
-				<mesh
-					geometry={(nodes[`Switch_Bottom${suffix}`] as THREE.Mesh).geometry}
-					material={(nodes[`Switch_Bottom${suffix}`] as THREE.Mesh).material}
-					position={(nodes[`Switch_Bottom${suffix}`] as THREE.Mesh).position}
-				></mesh>
+// 				<mesh
+// 					geometry={(nodes[`Switch_Bottom${suffix}`] as THREE.Mesh).geometry}
+// 					material={(nodes[`Switch_Bottom${suffix}`] as THREE.Mesh).material}
+// 					position={(nodes[`Switch_Bottom${suffix}`] as THREE.Mesh).position}
+// 				></mesh>
 
-				<mesh
-					geometry={(nodes[`Switch_Middle${suffix}`] as THREE.Mesh).geometry}
-					material={(nodes[`Switch_Middle${suffix}`] as THREE.Mesh).material}
-					position={(nodes[`Switch_Middle${suffix}`] as THREE.Mesh).position}
-					material-transparent={true}
-					material-opacity={0.7}
-					material-roughness={0.8}
-				>
-					{/* too heavy performance */}
-					{/* <MeshTransmissionMaterial
-						{...config}
-						color={'#fef4ef'}
-						toneMapped={false}
-					/> */}
-				</mesh>
+// 				<mesh
+// 					geometry={(nodes[`Switch_Middle${suffix}`] as THREE.Mesh).geometry}
+// 					material={(nodes[`Switch_Middle${suffix}`] as THREE.Mesh).material}
+// 					position={(nodes[`Switch_Middle${suffix}`] as THREE.Mesh).position}
+// 					material-transparent={true}
+// 					material-opacity={0.7}
+// 					material-roughness={0.8}
+// 				>
+// 					{/* too heavy performance */}
+// 					{/* <MeshTransmissionMaterial
+// 						{...config}
+// 						color={'#fef4ef'}
+// 						toneMapped={false}
+// 					/> */}
+// 				</mesh>
 
-				<mesh
-					geometry={(nodes[`Switch_Top${suffix}`] as THREE.Mesh).geometry}
-					material={(nodes[`Switch_Top${suffix}`] as THREE.Mesh).material}
-					material-color={color}
-					position={(nodes[`Switch_Top${suffix}`] as THREE.Mesh).position}
-				></mesh>
-			</group>
-		);
-	}
+// 				<mesh
+// 					geometry={(nodes[`Switch_Top${suffix}`] as THREE.Mesh).geometry}
+// 					material={(nodes[`Switch_Top${suffix}`] as THREE.Mesh).material}
+// 					material-color={color}
+// 					position={(nodes[`Switch_Top${suffix}`] as THREE.Mesh).position}
+// 				></mesh>
+// 			</group>
+// 		);
+// 	}
 
-	return switchList;
-}
+// 	return switchList;
+// }
 
 function determineNumLength(num: number | string, pad: string) {
 	let str = '' + num;
