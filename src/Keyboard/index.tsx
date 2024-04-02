@@ -5,13 +5,13 @@ import { useControls } from 'leva';
 
 export default function LivingRoom() {
 	const { bgColor } = useControls({
-		bgColor: '#d8d2d2',
+		bgColor: '#fff',
 	});
 
 	return (
 		<>
 			<Canvas
-				camera={{ position: [0, 8, 10], fov: 45, near: 0.01 }}
+				camera={{ position: [0, 6, 1], fov: 45, near: 0.01 }}
 				shadows
 			>
 				<color

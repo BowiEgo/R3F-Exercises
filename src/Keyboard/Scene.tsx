@@ -36,22 +36,22 @@ export function Scene() {
 		showKnob,
 		showKnobHolder,
 		showTopCase,
-		// showPlate,
+		showPlate,
 		showIXPEFoam,
 		showPETFilm,
 		showBottomCase,
 	} = useControls({
 		knobColor: '#be806e',
 		switchColor: '#e22626',
-		showKeycaps: true,
+		showKeycaps: false,
 		showSwitches: true,
-		showKnob: true,
-		showKnobHolder: true,
-		showTopCase: true,
-		showPlate: true,
-		showIXPEFoam: true,
-		showPETFilm: true,
-		showBottomCase: true,
+		showKnob: false,
+		showKnobHolder: false,
+		showTopCase: false,
+		showPlate: false,
+		showIXPEFoam: false,
+		showPETFilm: false,
+		showBottomCase: false,
 	});
 
 	return (
@@ -117,14 +117,14 @@ export function Scene() {
 				/>
 			)}
 
-			{/* {showPlate && (
+			{showPlate && (
 				<mesh
 					geometry={(nodes.Plate as THREE.Mesh).geometry}
 					material={(nodes.Plate as THREE.Mesh).material}
 					position={(nodes.Plate as THREE.Mesh).position}
 					castShadow={false}
 				/>
-			)} */}
+			)}
 
 			{showIXPEFoam && (
 				<mesh
