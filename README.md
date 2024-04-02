@@ -7,7 +7,7 @@
 
 -   [GitHub](https://github.com/BowiEgo/R3F-Exercises)
 -   [Live(Production)](r3-f-exercises.vercel.app)
--   [Preview(Development)](r3-f-exercises-7zhhowp64-bowiegos-projects.vercel.app)
+-   [Preview(Development)](https://r3-f-exercises-git-main-bowiegos-projects.vercel.app/)
 
 ## Setup
 
