@@ -7,7 +7,7 @@ import Keyboard from './Keyboard';
 function App() {
 	return (
 		<>
-			<Leva />
+			<Leva collapsed />
 			{/* <Geometries /> */}
 			{/* <LivingRoom /> */}
 			<Keyboard />

@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { ContactShadows, Decal, Environment, useGLTF, useTexture } from '@react-three/drei';
-import { ReactElement, useState } from 'react';
+import { ReactElement, useState, useTransition } from 'react';
 import { useControls } from 'leva';
 import decalData from './decal';
 import { Switches } from './Switches';
@@ -64,7 +64,7 @@ export function Scene() {
 			THREE.MathUtils.lerp(
 				bottomCaseOpacity,
 				isSwitchesQueued ? 1 : 0,
-				isSwitchesQueued ? 0.01 : 1
+				isSwitchesQueued ? 0.05 : 0.5
 			)
 		);
 	});
@@ -72,7 +72,32 @@ export function Scene() {
 	return (
 		<>
 			<ambientLight intensity={0.7} />
-			<Environment preset='city' />
+			{/* <Environment
+				preset='park'
+				background
+				blur={1}
+				resolution={1}
+			/> */}
+
+			<Env />
+
+			{/* <AccumulativeShadows
+				temporal
+				frames={200}
+				color='purple'
+				colorBlend={0.5}
+				opacity={1}
+				scale={10}
+				alphaTest={0.85}
+			>
+				<RandomizedLight
+					amount={8}
+					radius={5}
+					ambient={0.5}
+					position={[5, 3, 2]}
+					bias={0.001}
+				/>
+			</AccumulativeShadows> */}
 
 			{/* <primitive object={nodes.BottomCase} /> */}
 			{/* <primitive object={keycaps} /> */}
@@ -133,6 +158,7 @@ export function Scene() {
 					geometry={(nodes.TopCase as THREE.Mesh).geometry}
 					material={(nodes.TopCase as THREE.Mesh).material}
 					position={(nodes.TopCase as THREE.Mesh).position}
+					material-roughness={0.8}
 					material-transparent={true}
 					material-opacity={bottomCaseOpacity}
 					castShadow={false}
@@ -201,6 +227,55 @@ export function Scene() {
 				</>
 			)}
 		</>
+	);
+}
+
+type envPreset =
+	| 'dawn'
+	| 'sunset'
+	| 'night'
+	| 'warehouse'
+	| 'forest'
+	| 'apartment'
+	| 'studio'
+	| 'city'
+	| 'park'
+	| 'lobby'
+	| undefined;
+
+function Env() {
+	const [preset, setPreset] = useState('dawn');
+	// You can use the "inTransition" boolean to react to the loading in-between state,
+	// For instance by showing a message
+	const [_inTransition, startTransition] = useTransition();
+	const { blur } = useControls({
+		blur: { value: 0.65, min: 0, max: 1 },
+		preset: {
+			value: preset,
+			options: [
+				'sunset',
+				'dawn',
+				'night',
+				'warehouse',
+				'forest',
+				'apartment',
+				'studio',
+				'city',
+				'park',
+				'lobby',
+			],
+			// If onChange is present the value will not be reactive, see https://github.com/pmndrs/leva/blob/main/docs/advanced/controlled-inputs.md#onchange
+			// Instead we transition the preset value, which will prevents the suspense bound from triggering its fallback
+			// That way we can hang onto the current environment until the new one has finished loading ...
+			onChange: (value) => startTransition(() => setPreset(value)),
+		},
+	});
+	return (
+		<Environment
+			preset={preset as envPreset}
+			background
+			blur={blur}
+		/>
 	);
 }
 

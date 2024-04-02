@@ -139,7 +139,7 @@ function Model({
 
 			ref.current.position.x = THREE.MathUtils.lerp(
 				ref.current.position.x,
-				isQueued ? targetPosition[0] : Math.sin(t / 200) * 6,
+				isQueued ? targetPosition[0] : Math.sin(t / 200) * 6 + 2.5,
 				0.08
 			);
 			ref.current.position.y = THREE.MathUtils.lerp(
