@@ -2,16 +2,18 @@ import * as THREE from 'three';
 import { ReactElement, createContext, useContext, useMemo, useRef } from 'react';
 import { Merged } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
-import { data, switchData } from './store';
+import { switchData } from './store';
 
 const context = createContext(null);
 
 export function Switches({
 	nodes,
+	visible,
 	color,
 	isQueued,
 }: {
 	nodes: any;
+	visible: boolean;
 	color: THREE.Color;
 	isQueued: boolean;
 }) {
@@ -21,14 +23,17 @@ export function Switches({
 			color={color}
 		>
 			<>
-				{data.map((props, i) => (
-					<Model
-						key={i}
-						isQueued={isQueued}
-						targetPosition={switchData[i].position}
-						{...props}
-					/>
-				))}
+				{switchData.map((row, i) =>
+					row.map((props, j) => (
+						<Model
+							key={i + j}
+							visible={visible}
+							isQueued={isQueued}
+							targetPosition={props.position}
+							{...props}
+						/>
+					))
+				)}
 			</>
 		</Instances>
 	);
@@ -48,12 +53,13 @@ function Instances({
 		const result = {
 			Switch: nodes.Switch,
 			Switch_1: nodes.Switch_1,
+			Switch_BaseModel: nodes.Switch_BaseModel,
 			Switch_Top: nodes.Switch_Top,
-			Switch_Middle: nodes.Switch_Middle,
+			Switch_Bottom: nodes.Switch_Bottom,
 		};
 
-		result.Switch_Middle.material.transparent = true;
-		result.Switch_Middle.material.opacity = 0.6;
+		result.Switch_BaseModel.material.transparent = true;
+		result.Switch_BaseModel.material.opacity = 0.6;
 
 		return result;
 	}, [nodes]);
@@ -105,11 +111,13 @@ function Model({
 	isQueued,
 	random,
 	targetPosition,
+	visible,
 	...props
 }: {
 	isQueued: boolean;
 	random: number;
 	targetPosition: number[];
+	visible: boolean;
 }) {
 	const instances = useContext(context) as any;
 
@@ -168,11 +176,11 @@ function Model({
 			// onPointerOut={(e) => setHover(false)}
 			frustumCulled={false}
 		>
-			{instances && (
+			{instances && visible && (
 				<>
-					<instances.Switch castShadow={true} />
+					<instances.Switch />
 					<instances.Switch_1 />
-					<instances.Switch_Middle />
+					<instances.Switch_BaseModel />
 					<instances.Switch_Top />
 				</>
 			)}

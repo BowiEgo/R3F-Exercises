@@ -1,25 +1,22 @@
 import * as THREE from 'three';
-import { ContactShadows, Decal, Environment, useGLTF, useTexture } from '@react-three/drei';
-import { ReactElement, useState, useTransition } from 'react';
+import { ContactShadows, Float, useGLTF, useTexture } from '@react-three/drei';
+import { useEffect, useMemo, useRef } from 'react';
 import { useControls } from 'leva';
-import decalData from './decal';
+import { decalList } from './decal';
 import { Switches } from './Switches';
 import { useFrame } from '@react-three/fiber';
-
-const colorThemes = [
-	[
-		{ color: '#FFFFFF', reverse: false },
-		{ color: '#1F2B42', reverse: false },
-		{ color: '#1CC0CB', reverse: false },
-	],
-	[
-		{ color: '#405578', reverse: true },
-		{ color: '#444444', reverse: true },
-		{ color: '#b04040', reverse: false },
-	],
-];
+import { Env } from './Env';
+import { Keycaps } from './Keycaps';
+import { colorThemes } from './store';
 
 export function Scene() {
+	const topCase = useRef<THREE.Mesh>(null!);
+	const plate = useRef<THREE.Mesh>(null!);
+	const IXPEFoam = useRef<THREE.Mesh>(null!);
+	const PETFilm = useRef<THREE.Mesh>(null!);
+	const bottomCase = useRef<THREE.Group>(null!);
+	const contactShadow = useRef<THREE.Group>(null!);
+
 	const knobNormal = useTexture(`assets/models/Keyboard/textures/Knob_Normal_Map.png`);
 	const knobRoughness = useTexture(`assets/models/Keyboard/textures/Knob_Roughness_Map.png`);
 
@@ -27,10 +24,20 @@ export function Scene() {
 	knobRoughness.flipY = false;
 	const model = useGLTF('assets/models/Keyboard/Keychron Q1 Max.glb');
 	const { nodes } = model;
-	// console.log(nodes);
+
+	const topCaseMaterial = useMemo(() => {
+		return (nodes.TopCase as THREE.Mesh).material as THREE.MeshStandardMaterial;
+	}, []);
+
+	const knobMaterial = useMemo(() => {
+		return (nodes.Knob as THREE.Mesh).material as THREE.MeshStandardMaterial;
+	}, []);
 
 	const {
-		knobColor,
+		theme,
+		showKeycasPrimary,
+		showKeycapsSecondary,
+		showKeycapsTertiary,
 		switchColor,
 		showKeycaps,
 		showSwitches,
@@ -43,41 +50,47 @@ export function Scene() {
 		showBottomCase,
 		isSwitchesQueued,
 	} = useControls({
-		knobColor: '#be806e',
+		theme: {
+			value: 0,
+			options: [0, 1, 2],
+		},
+		showKeycasPrimary: true,
+		showKeycapsSecondary: true,
+		showKeycapsTertiary: true,
 		switchColor: '#e22626',
-		showKeycaps: false,
+		showKeycaps: true,
 		showSwitches: true,
-		showKnob: false,
+		showKnob: true,
 		showKnobHolder: true,
 		showTopCase: true,
 		showPlate: true,
 		showIXPEFoam: true,
 		showPETFilm: true,
 		showBottomCase: true,
-		isSwitchesQueued: false,
+		isSwitchesQueued: true,
 	});
-
-	const [bottomCaseOpacity, setBottomCaseOpacity] = useState(0);
 
 	useFrame((_state) => {
-		setBottomCaseOpacity(
-			THREE.MathUtils.lerp(
-				bottomCaseOpacity,
-				isSwitchesQueued ? 1 : 0,
-				isSwitchesQueued ? 0.05 : 0.5
-			)
-		);
+		contactShadow.current && lerpOpacity(contactShadow.current, isSwitchesQueued);
+		topCase.current && lerpOpacity(topCase.current, isSwitchesQueued);
+		plate.current && lerpOpacity(plate.current, isSwitchesQueued);
+		IXPEFoam.current && lerpOpacity(IXPEFoam.current, isSwitchesQueued);
+		PETFilm.current && lerpOpacity(PETFilm.current, isSwitchesQueued);
+		bottomCase.current && lerpOpacity(bottomCase.current, isSwitchesQueued);
 	});
+
+	useEffect(() => {
+		console.log(nodes);
+	}, [nodes]);
+
+	useEffect(() => {
+		topCaseMaterial.color.set(colorThemes[theme].case.color);
+		knobMaterial.color.set(colorThemes[theme].knob.color);
+	}, [theme]);
 
 	return (
 		<>
 			<ambientLight intensity={0.7} />
-			{/* <Environment
-				preset='park'
-				background
-				blur={1}
-				resolution={1}
-			/> */}
 
 			<Env />
 
@@ -99,113 +112,102 @@ export function Scene() {
 				/>
 			</AccumulativeShadows> */}
 
-			{/* <primitive object={nodes.BottomCase} /> */}
-			{/* <primitive object={keycaps} /> */}
-
 			<ContactShadows
+				ref={contactShadow}
 				position={[0, -0.8, 0]}
-				opacity={bottomCaseOpacity}
 				scale={10}
-				blur={1.5}
+				blur={2.5}
 				far={0.8}
 			/>
 
-			{showSwitches && (
+			<Float speed={0}>
 				<Switches
 					nodes={nodes}
+					visible={showSwitches}
 					color={new THREE.Color(switchColor)}
 					isQueued={isSwitchesQueued}
 				/>
-			)}
 
-			{showKeycaps && <KeycapList nodes={nodes} />}
-
-			{/* {showSwitches && (
-				<SwitchList
+				<Keycaps
 					nodes={nodes}
-					color={switchColor}
+					theme={theme}
+					showKeycasPrimary={showKeycasPrimary}
+					showKeycapsSecondary={showKeycapsSecondary}
+					showKeycapsTertiary={showKeycapsTertiary}
+					visible={showKeycaps}
 				/>
-			)} */}
 
-			{showKnob && (
 				<mesh
+					visible={showKnob}
 					geometry={(nodes['Knob'] as THREE.Mesh).geometry}
-					material={(nodes['Knob'] as THREE.Mesh).material}
 					position={(nodes['Knob'] as THREE.Mesh).position}
-					material-color={new THREE.Color(knobColor)}
+					material={knobMaterial}
 					material-metalness={0.4}
 					material-roughness={1}
 					// material-roughnessMap={knobRoughness}
 					material-transparent={true}
-					material-opacity={bottomCaseOpacity}
 					castShadow={false}
 				/>
-			)}
 
-			{showKnobHolder && (
 				<mesh
+					visible={showKnobHolder}
 					geometry={(nodes['E-100_Holder'] as THREE.Mesh).geometry}
-					material={(nodes['E-100_Holder'] as THREE.Mesh).material}
 					position={(nodes['E-100_Holder'] as THREE.Mesh).position}
-					material-transparent={true}
-					material-opacity={bottomCaseOpacity}
+					material={topCaseMaterial}
+					material-roughness={0.8}
 					castShadow={false}
 				/>
-			)}
 
-			{showTopCase && (
 				<mesh
+					ref={topCase}
+					visible={showTopCase}
 					geometry={(nodes.TopCase as THREE.Mesh).geometry}
-					material={(nodes.TopCase as THREE.Mesh).material}
 					position={(nodes.TopCase as THREE.Mesh).position}
+					material={topCaseMaterial}
 					material-roughness={0.8}
 					material-transparent={true}
-					material-opacity={bottomCaseOpacity}
 					castShadow={false}
 				/>
-			)}
 
-			{showPlate && (
 				<mesh
+					ref={plate}
+					visible={showPlate}
 					geometry={(nodes.Plate as THREE.Mesh).geometry}
 					material={(nodes.Plate as THREE.Mesh).material}
 					position={(nodes.Plate as THREE.Mesh).position}
 					material-transparent={true}
-					material-opacity={bottomCaseOpacity}
 					castShadow={false}
 				/>
-			)}
 
-			{showIXPEFoam && (
 				<mesh
+					ref={IXPEFoam}
+					visible={showIXPEFoam}
 					geometry={(nodes.IXPEFoam as THREE.Mesh).geometry}
 					material={(nodes.IXPEFoam as THREE.Mesh).material}
 					position={(nodes.IXPEFoam as THREE.Mesh).position}
 					material-transparent={true}
-					material-opacity={bottomCaseOpacity}
 					castShadow={false}
 				/>
-			)}
 
-			{showPETFilm && (
 				<mesh
+					ref={PETFilm}
+					visible={showPETFilm}
 					geometry={(nodes.PETFilm as THREE.Mesh).geometry}
 					material={(nodes.PETFilm as THREE.Mesh).material}
 					position={(nodes.PETFilm as THREE.Mesh).position}
 					material-transparent={true}
-					material-opacity={bottomCaseOpacity}
 					castShadow={false}
 				/>
-			)}
 
-			{showBottomCase && (
-				<>
+				<group
+					ref={bottomCase}
+					visible={showBottomCase}
+				>
 					<mesh
 						geometry={(nodes.BottomCase as THREE.Mesh).geometry}
 						material={(nodes.BottomCase as THREE.Mesh).material}
 						position={(nodes.BottomCase as THREE.Mesh).position}
 						material-transparent={true}
-						material-opacity={bottomCaseOpacity}
 						castShadow={false}
 					/>
 					<mesh
@@ -213,7 +215,6 @@ export function Scene() {
 						material={(nodes.BottomCase_Plate as THREE.Mesh).material}
 						position={(nodes.BottomCase_Plate as THREE.Mesh).position}
 						material-transparent={true}
-						material-opacity={bottomCaseOpacity}
 						castShadow={false}
 					/>
 					<mesh
@@ -221,271 +222,37 @@ export function Scene() {
 						material={(nodes.BottomCase_Screws as THREE.Mesh).material}
 						position={(nodes.BottomCase_Screws as THREE.Mesh).position}
 						material-transparent={true}
-						material-opacity={bottomCaseOpacity}
 						castShadow={false}
 					/>
-				</>
-			)}
+				</group>
+			</Float>
 		</>
 	);
 }
 
-type envPreset =
-	| 'dawn'
-	| 'sunset'
-	| 'night'
-	| 'warehouse'
-	| 'forest'
-	| 'apartment'
-	| 'studio'
-	| 'city'
-	| 'park'
-	| 'lobby'
-	| undefined;
-
-function Env() {
-	const [preset, setPreset] = useState('dawn');
-	// You can use the "inTransition" boolean to react to the loading in-between state,
-	// For instance by showing a message
-	const [_inTransition, startTransition] = useTransition();
-	const { blur } = useControls({
-		blur: { value: 0.65, min: 0, max: 1 },
-		preset: {
-			value: preset,
-			options: [
-				'sunset',
-				'dawn',
-				'night',
-				'warehouse',
-				'forest',
-				'apartment',
-				'studio',
-				'city',
-				'park',
-				'lobby',
-			],
-			// If onChange is present the value will not be reactive, see https://github.com/pmndrs/leva/blob/main/docs/advanced/controlled-inputs.md#onchange
-			// Instead we transition the preset value, which will prevents the suspense bound from triggering its fallback
-			// That way we can hang onto the current environment until the new one has finished loading ...
-			onChange: (value) => startTransition(() => setPreset(value)),
-		},
-	});
-	return (
-		<Environment
-			preset={preset as envPreset}
-			background
-			blur={blur}
-		/>
-	);
-}
-
-function KeycapList({ nodes }: { nodes: any }) {
-	// console.log('KeycapList');
-
-	const themeIndex = 1;
-
-	const keyCapsTexture = useTexture(`assets/models/Keyboard/Keychron_Q1_Pro_KeyCaps_Texts_1.png`);
-	const keyCapsReversedTexture = useTexture(
-		`assets/models/Keyboard/Keycaps_Base_Color_Reverse.png`
-	);
-	const keyCapsNormal = useTexture(`assets/models/Keyboard/Keycaps Normal Map_Compressed.png`);
-
-	keyCapsTexture.flipY = false;
-	keyCapsReversedTexture.flipY = false;
-	keyCapsNormal.flipY = false;
-
-	// const { decaPosition, decaRotation, decaScale } = useControls({
-	// 	decaPosition: {
-	// 		value: { x: 1.77, y: 2.16, z: -0.12 },
-	// 		step: 0.01,
-	// 	},
-	// 	decaRotation: {
-	// 		value: { x: -Math.PI / 2, y: 0, z: 0 },
-	// 		step: 0.01,
-	// 	},
-	// 	decaScale: {
-	// 		value: { x: 0.2, y: 0.2, z: 0.2 },
-	// 		step: 0.01,
-	// 	},
-	// });
-
-	const primaryKeycapColor = new THREE.Color(colorThemes[themeIndex][0].color);
-	const secondaryKeycapColor = new THREE.Color(colorThemes[themeIndex][1].color);
-	const tertiaryKeycapColor = new THREE.Color(colorThemes[themeIndex][2].color);
-
-	const keyCapsMaterial = new THREE.MeshStandardMaterial({
-		// map: keyCapsTexture,
-		// color: new THREE.Color('#fff'),
-		normalMap: keyCapsNormal,
-		// opacity: 0.3,
-		// transparent: true,
-	});
-
-	const keyCapsPrimaryMaterial = keyCapsMaterial.clone();
-	const keyCapsSecondaryyMaterial = keyCapsMaterial.clone();
-	const keyCapsTertiaryMaterial = keyCapsMaterial.clone();
-
-	keyCapsPrimaryMaterial.color = primaryKeycapColor;
-	keyCapsSecondaryyMaterial.color = secondaryKeycapColor;
-	keyCapsTertiaryMaterial.color = tertiaryKeycapColor;
-
-	if (!colorThemes[themeIndex][0].reverse) {
-		keyCapsPrimaryMaterial.map = keyCapsTexture;
-	}
-	if (!colorThemes[themeIndex][1].reverse) {
-		keyCapsSecondaryyMaterial.map = keyCapsTexture;
-	}
-	if (!colorThemes[themeIndex][2].reverse) {
-		keyCapsTertiaryMaterial.map = keyCapsTexture;
+function lerpOpacity(target: THREE.Mesh | THREE.Group, isSwitchesQueued: boolean) {
+	function lerp(material: any) {
+		material.opacity = THREE.MathUtils.lerp(
+			material.opacity,
+			isSwitchesQueued ? 1 : 0,
+			isSwitchesQueued ? 0.05 : 0.5
+		);
 	}
 
-	function getKeyCapMaterial(childName: string) {
-		if (childName.indexOf('Primary') > -1) {
-			return keyCapsPrimaryMaterial;
-		}
-		if (childName.indexOf('Secondary') > -1) {
-			return keyCapsSecondaryyMaterial;
-		}
-		if (childName.indexOf('Tertiary') > -1) {
-			return keyCapsTertiaryMaterial;
-		}
+	if (target instanceof THREE.Group) {
+		target.children.forEach((child) => {
+			if (child instanceof THREE.Mesh) {
+				lerp(child.material as THREE.Material);
+			}
+		});
+	} else if (target instanceof THREE.Mesh) {
+		lerp(target.material);
 	}
-
-	let keycapsPrimaryList: ReactElement[] = [];
-	let keycapsSecondaryList: ReactElement[] = [];
-	let keycapsTertiaryList: ReactElement[] = [];
-
-	function fillList(list: ReactElement[], length: number, theme: number, prefix: string) {
-		for (let i = 0; i <= length; i++) {
-			const suffix = i === 0 ? '' : determineNumLength(i, '000');
-			const name = `Keycaps_${prefix}${suffix}`;
-			const { position, scale } = (decalData as any)[name];
-
-			list.push(
-				<mesh
-					key={name}
-					name={name}
-					geometry={(nodes[name] as THREE.Mesh).geometry}
-					material={getKeyCapMaterial(name)}
-					position={(nodes[name] as THREE.Mesh).position}
-				>
-					{colorThemes[themeIndex][theme].reverse && name !== `Keycaps_Primary053` && (
-						<Decal
-							// debug
-							map={useTexture(`assets/models/Keyboard/textures/${name}_W.png`)}
-							position={[position.x, 0.3, position.z]}
-							rotation={[-Math.PI / 2, 0, 0]}
-							scale={[scale.x, scale.y, scale.z]}
-						/>
-					)}
-				</mesh>
-			);
-		}
-	}
-
-	fillList(keycapsPrimaryList, 57, 0, 'Primary');
-	fillList(keycapsSecondaryList, 20, 1, 'Secondary');
-	fillList(keycapsTertiaryList, 1, 2, 'Tertiary');
-
-	const { showKeycasPrimary, showKeycapsSecondary, showKeycapsTertiary } = useControls({
-		showKeycasPrimary: true,
-		showKeycapsSecondary: true,
-		showKeycapsTertiary: true,
-	});
-
-	return (
-		<>
-			{showKeycasPrimary && keycapsPrimaryList}
-			{showKeycapsSecondary && keycapsSecondaryList}
-			{showKeycapsTertiary && keycapsTertiaryList}
-		</>
-	);
-}
-
-// function SwitchList({ nodes, color }: { nodes: any; color: string | THREE.Color }) {
-// 	// const config = useControls({
-// 	// 	backside: false,
-// 	// 	samples: { value: 16, min: 1, max: 32, step: 1 },
-// 	// 	resolution: { value: 256, min: 64, max: 2048, step: 64 },
-// 	// 	transmission: { value: 0.75, min: 0, max: 1 },
-// 	// 	roughness: { value: 0.3, min: 0, max: 1, step: 0.01 },
-// 	// 	clearcoat: { value: 0.1, min: 0, max: 1, step: 0.01 },
-// 	// 	clearcoatRoughness: { value: 0.1, min: 0, max: 1, step: 0.01 },
-// 	// 	thickness: { value: 200, min: 0, max: 200, step: 0.01 },
-// 	// 	backsideThickness: { value: 200, min: 0, max: 200, step: 0.01 },
-// 	// 	ior: { value: 1.03, min: 1, max: 5, step: 0.01 },
-// 	// 	chromaticAberration: { value: 0, min: 0, max: 1 },
-// 	// 	anisotropy: { value: 1, min: 0, max: 10, step: 0.01 },
-// 	// 	distortion: { value: 0, min: 0, max: 1, step: 0.01 },
-// 	// 	distortionScale: { value: 0.2, min: 0.01, max: 1, step: 0.01 },
-// 	// 	temporalDistortion: { value: 0, min: 0, max: 1, step: 0.01 },
-// 	// 	attenuationDistance: { value: 0.5, min: 0, max: 10, step: 0.01 },
-// 	// 	attenuationColor: '#ffffff',
-// 	// 	color: '#ffffff',
-// 	// });
-
-// 	const switchList = [];
-// 	for (let i = 0; i <= 81; i++) {
-// 		const suffix = i === 0 ? '' : determineNumLength(i, '000');
-
-// 		switchList.push(
-// 			<group key={i}>
-// 				<mesh
-// 					geometry={(nodes[`Switch${suffix}`] as THREE.Mesh).geometry}
-// 					material={(nodes[`Switch${suffix}`] as THREE.Mesh).material}
-// 					position={(nodes[`Switch${suffix}`] as THREE.Mesh).position}
-// 				></mesh>
-
-// 				<mesh
-// 					geometry={(nodes[`Switch${suffix}_1`] as THREE.Mesh).geometry}
-// 					material={(nodes[`Switch${suffix}_1`] as THREE.Mesh).material}
-// 					position={(nodes[`Switch${suffix}_1`] as THREE.Mesh).position}
-// 				></mesh>
-
-// 				<mesh
-// 					geometry={(nodes[`Switch_Bottom${suffix}`] as THREE.Mesh).geometry}
-// 					material={(nodes[`Switch_Bottom${suffix}`] as THREE.Mesh).material}
-// 					position={(nodes[`Switch_Bottom${suffix}`] as THREE.Mesh).position}
-// 				></mesh>
-
-// 				<mesh
-// 					geometry={(nodes[`Switch_Middle${suffix}`] as THREE.Mesh).geometry}
-// 					material={(nodes[`Switch_Middle${suffix}`] as THREE.Mesh).material}
-// 					position={(nodes[`Switch_Middle${suffix}`] as THREE.Mesh).position}
-// 					material-transparent={true}
-// 					material-opacity={0.7}
-// 					material-roughness={0.8}
-// 				>
-// 					{/* too heavy performance */}
-// 					{/* <MeshTransmissionMaterial
-// 						{...config}
-// 						color={'#fef4ef'}
-// 						toneMapped={false}
-// 					/> */}
-// 				</mesh>
-
-// 				<mesh
-// 					geometry={(nodes[`Switch_Top${suffix}`] as THREE.Mesh).geometry}
-// 					material={(nodes[`Switch_Top${suffix}`] as THREE.Mesh).material}
-// 					material-color={color}
-// 					position={(nodes[`Switch_Top${suffix}`] as THREE.Mesh).position}
-// 				></mesh>
-// 			</group>
-// 		);
-// 	}
-
-// 	return switchList;
-// }
-
-function determineNumLength(num: number | string, pad: string) {
-	let str = '' + num;
-	return pad.substring(0, pad.length - str.length) + str;
 }
 
 useGLTF.preload('assets/models/Keyboard/Keychron Q1 Max.glb');
 [
-	'assets/models/Keyboard/Keychron_Q1_Pro_KeyCaps_Texts_1.png',
-	// 'Keycaps Base Color.png',
 	'Keycaps Base Color_Reverse.png',
 	'Keycaps Normal Map_Compressed',
+	...decalList.map((item) => `assets/models/Keyboard/textures/${item.name}_W.png`),
 ].forEach(useTexture.preload);
