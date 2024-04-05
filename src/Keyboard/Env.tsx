@@ -16,10 +16,10 @@ type envPreset =
 	| undefined;
 
 export function Env() {
-	const [preset, setPreset] = useState('dawn');
+	const [preset, setPreset] = useState('city');
 	const [_inTransition, startTransition] = useTransition();
 	const { blur } = useControls({
-		blur: { value: 0.65, min: 0, max: 1 },
+		blur: { value: 1, min: 0, max: 1 },
 		preset: {
 			value: preset,
 			options: [

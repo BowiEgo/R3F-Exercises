@@ -1,24 +1,29 @@
 import * as THREE from 'three';
 import { Decal, useTexture } from '@react-three/drei';
-import { useEffect, useMemo } from 'react';
+import { forwardRef, useEffect, useMemo } from 'react';
 import { decalList } from './decal';
 import { colorThemes } from './store';
 
-export function Keycaps({
-	nodes,
-	theme = 0,
-	showKeycasPrimary = true,
-	showKeycapsSecondary = true,
-	showKeycapsTertiary = true,
-	visible,
-}: {
-	nodes: any;
-	theme: number;
-	showKeycasPrimary: boolean;
-	showKeycapsSecondary: boolean;
-	showKeycapsTertiary: boolean;
-	visible: boolean;
-}) {
+export const Keycaps = forwardRef(function Keycaps(
+	{
+		nodes,
+		theme = 0,
+		showKeycasPrimary = true,
+		showKeycapsSecondary = true,
+		showKeycapsTertiary = true,
+		showDecal = true,
+		visible,
+	}: {
+		nodes: any;
+		theme: number;
+		showKeycasPrimary: boolean;
+		showKeycapsSecondary: boolean;
+		showKeycapsTertiary: boolean;
+		showDecal: boolean;
+		visible: boolean;
+	},
+	ref
+) {
 	const keyCapsTexture = useTexture(`assets/models/Keyboard/Keychron_Q1_Pro_KeyCaps_Texts_1.png`);
 	const keyCapsNormal = useTexture(`assets/models/Keyboard/Keycaps Normal Map_Compressed.png`);
 	keyCapsTexture.flipY = false;
@@ -68,7 +73,10 @@ export function Keycaps({
 	}, [theme]);
 
 	return (
-		<group visible={visible}>
+		<group
+			ref={ref as any}
+			visible={visible}
+		>
 			{decalList.map((item) => (
 				<mesh
 					key={item.name}
@@ -85,7 +93,7 @@ export function Keycaps({
 					{item.name !== `Keycaps_Primary053` && (
 						<Decal
 							// debug
-							visible={colorThemes[theme][item.type].reverse}
+							visible={colorThemes[theme][item.type].reverse && showDecal}
 							map={useTexture(`assets/models/Keyboard/textures/${item.name}_W.png`)}
 							position={[item.position.x, 0.3, item.position.z]}
 							rotation={[-Math.PI / 2, 0, 0]}
@@ -96,7 +104,7 @@ export function Keycaps({
 			))}
 		</group>
 	);
-}
+});
 
 // const context = createContext(null);
 

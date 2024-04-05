@@ -10,6 +10,8 @@ import { Keycaps } from './Keycaps';
 import { colorThemes } from './store';
 
 export function Scene() {
+	const keycaps = useRef<THREE.Group>(null!);
+	const knob = useRef<THREE.Mesh>(null!);
 	const topCase = useRef<THREE.Mesh>(null!);
 	const plate = useRef<THREE.Mesh>(null!);
 	const IXPEFoam = useRef<THREE.Mesh>(null!);
@@ -58,20 +60,22 @@ export function Scene() {
 		showKeycapsSecondary: true,
 		showKeycapsTertiary: true,
 		switchColor: '#e22626',
-		showKeycaps: true,
+		showKeycaps: false,
 		showSwitches: true,
-		showKnob: true,
-		showKnobHolder: true,
-		showTopCase: true,
+		showKnob: false,
+		showKnobHolder: false,
+		showTopCase: false,
 		showPlate: true,
 		showIXPEFoam: true,
 		showPETFilm: true,
 		showBottomCase: true,
-		isSwitchesQueued: true,
+		isSwitchesQueued: false,
 	});
 
 	useFrame((_state) => {
 		contactShadow.current && lerpOpacity(contactShadow.current, isSwitchesQueued);
+		knob.current && lerpOpacity(knob.current, isSwitchesQueued);
+		keycaps.current && lerpOpacity(keycaps.current, isSwitchesQueued);
 		topCase.current && lerpOpacity(topCase.current, isSwitchesQueued);
 		plate.current && lerpOpacity(plate.current, isSwitchesQueued);
 		IXPEFoam.current && lerpOpacity(IXPEFoam.current, isSwitchesQueued);
@@ -81,7 +85,7 @@ export function Scene() {
 
 	useEffect(() => {
 		console.log(nodes);
-	}, [nodes]);
+	}, []);
 
 	useEffect(() => {
 		topCaseMaterial.color.set(colorThemes[theme].case.color);
@@ -129,21 +133,24 @@ export function Scene() {
 				/>
 
 				<Keycaps
+					ref={keycaps}
 					nodes={nodes}
 					theme={theme}
 					showKeycasPrimary={showKeycasPrimary}
 					showKeycapsSecondary={showKeycapsSecondary}
 					showKeycapsTertiary={showKeycapsTertiary}
+					showDecal={isSwitchesQueued}
 					visible={showKeycaps}
 				/>
 
 				<mesh
+					ref={knob}
 					visible={showKnob}
 					geometry={(nodes['Knob'] as THREE.Mesh).geometry}
 					position={(nodes['Knob'] as THREE.Mesh).position}
 					material={knobMaterial}
 					material-metalness={0.4}
-					material-roughness={1}
+					material-roughness={0.4}
 					// material-roughnessMap={knobRoughness}
 					material-transparent={true}
 					castShadow={false}
@@ -242,6 +249,7 @@ function lerpOpacity(target: THREE.Mesh | THREE.Group, isSwitchesQueued: boolean
 	if (target instanceof THREE.Group) {
 		target.children.forEach((child) => {
 			if (child instanceof THREE.Mesh) {
+				child.material.transparent = true;
 				lerp(child.material as THREE.Material);
 			}
 		});
