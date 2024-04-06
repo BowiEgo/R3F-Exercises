@@ -112,37 +112,42 @@ export function Scene() {
 	}, []);
 
 	useEffect(() => {
-		const unsubscribeExpandKeyboard_A = mapEventChannel.on('expandKeyboard_A', () => {
-			animation_3.current.play(0).timeScale(1);
+		const unsubscribeShowTopCase_A = mapEventChannel.on('showTopCase_A', (forward: boolean) => {
+			if (forward) {
+				animation_2.current.play(0).timeScale(1);
+				keycaps.current.showDecal(true);
+			} else {
+				animation_2.current.timeScale(1).reverse();
+				keycaps.current.showDecal(false);
+			}
 		});
 
-		const unsubscribeAssembleKeyboard_A = mapEventChannel.on('assembleKeyboard_A', () => {
-			animation_3.current.timeScale(1).reverse();
-		});
-
-		const unsubscribShowBaseKeyboard_A = mapEventChannel.on('showBaseKeyboard_A', () => {});
-
-		const unsubscribeShowTopCase_A = mapEventChannel.on('showTopCase_A', () => {
-			animation_2.current.play(0).timeScale(1);
-			keycaps.current.showDecal(true);
-		});
+		const unsubscribeExpandKeyboard_A = mapEventChannel.on(
+			'expandKeyboard_A',
+			(forward: boolean) => {
+				forward
+					? animation_3.current.play(0).timeScale(1)
+					: animation_3.current.timeScale(1).reverse();
+			}
+		);
 
 		return () => {
-			unsubscribeExpandKeyboard_A();
-			unsubscribeAssembleKeyboard_A();
-			unsubscribShowBaseKeyboard_A();
 			unsubscribeShowTopCase_A();
+			unsubscribeExpandKeyboard_A();
 		};
 	}, []);
 
 	useEffect(() => {
-		const unsubscribeQueuingSwitches_A = mapEventChannel.on('queuingSwitches_A', () => {
-			setSwitchesQueued(!switchesQueued);
+		const unsubscribeQueuingSwitches_A = mapEventChannel.on(
+			'queuingSwitches_A',
+			(forward: boolean) => {
+				setSwitchesQueued(forward);
 
-			switchesQueued
-				? animation_1.current.timeScale(20).reverse()
-				: animation_1.current.play(0).timeScale(1);
-		});
+				forward
+					? animation_1.current.play(0).timeScale(1)
+					: animation_1.current.timeScale(20).reverse();
+			}
+		);
 
 		return () => {
 			unsubscribeQueuingSwitches_A();
