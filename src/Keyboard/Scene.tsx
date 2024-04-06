@@ -1,17 +1,27 @@
 import * as THREE from 'three';
 import { ContactShadows, Float, useGLTF, useTexture } from '@react-three/drei';
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useControls } from 'leva';
 import { decalList } from './decal';
 import { Switches } from './Switches';
-import { useFrame } from '@react-three/fiber';
 import { Env } from './Env';
 import { Keycaps } from './Keycaps';
 import { colorThemes } from './store';
+import { mapEventChannel } from './event';
+import { useFrame } from '@react-three/fiber';
+import { assembleBottomBody, assembleTopBody, expandWholeBody } from './Animations';
 
 export function Scene() {
-	const keycaps = useRef<THREE.Group>(null!);
+	const [switchesQueued, setSwitchesQueued] = useState(false);
+
+	const animation_1 = useRef<GSAPTimeline>(null!);
+	const animation_2 = useRef<GSAPTimeline>(null!);
+	const animation_3 = useRef<GSAPTimeline>(null!);
+
+	const keycaps = useRef<any>(null!);
 	const knob = useRef<THREE.Mesh>(null!);
+	const knobHolder = useRef<THREE.Mesh>(null!);
+	const switches = useRef<THREE.Group>(null!);
 	const topCase = useRef<THREE.Mesh>(null!);
 	const plate = useRef<THREE.Mesh>(null!);
 	const IXPEFoam = useRef<THREE.Mesh>(null!);
@@ -28,7 +38,9 @@ export function Scene() {
 	const { nodes } = model;
 
 	const topCaseMaterial = useMemo(() => {
-		return (nodes.TopCase as THREE.Mesh).material as THREE.MeshStandardMaterial;
+		return (
+			(nodes.TopCase as THREE.Mesh).material as THREE.Material
+		).clone() as THREE.MeshStandardMaterial;
 	}, []);
 
 	const knobMaterial = useMemo(() => {
@@ -41,7 +53,6 @@ export function Scene() {
 		showKeycapsSecondary,
 		showKeycapsTertiary,
 		switchColor,
-		showKeycaps,
 		showSwitches,
 		showKnob,
 		showKnobHolder,
@@ -50,7 +61,6 @@ export function Scene() {
 		showIXPEFoam,
 		showPETFilm,
 		showBottomCase,
-		isSwitchesQueued,
 	} = useControls({
 		theme: {
 			value: 0,
@@ -60,37 +70,93 @@ export function Scene() {
 		showKeycapsSecondary: true,
 		showKeycapsTertiary: true,
 		switchColor: '#e22626',
-		showKeycaps: false,
+		showKeycaps: true,
 		showSwitches: true,
-		showKnob: false,
-		showKnobHolder: false,
-		showTopCase: false,
+		showKnob: true,
+		showKnobHolder: true,
+		showTopCase: true,
 		showPlate: true,
 		showIXPEFoam: true,
 		showPETFilm: true,
 		showBottomCase: true,
-		isSwitchesQueued: false,
+		expandProgress: { value: 0, min: 0, max: 1 },
 	});
 
-	useFrame((_state) => {
-		contactShadow.current && lerpOpacity(contactShadow.current, isSwitchesQueued);
-		knob.current && lerpOpacity(knob.current, isSwitchesQueued);
-		keycaps.current && lerpOpacity(keycaps.current, isSwitchesQueued);
-		topCase.current && lerpOpacity(topCase.current, isSwitchesQueued);
-		plate.current && lerpOpacity(plate.current, isSwitchesQueued);
-		IXPEFoam.current && lerpOpacity(IXPEFoam.current, isSwitchesQueued);
-		PETFilm.current && lerpOpacity(PETFilm.current, isSwitchesQueued);
-		bottomCase.current && lerpOpacity(bottomCase.current, isSwitchesQueued);
-	});
+	useLayoutEffect(() => {
+		animation_1.current = assembleBottomBody({
+			plate: plate.current,
+			IXPEFoam: IXPEFoam.current,
+			PETFilm: PETFilm.current,
+			bottomCase: bottomCase.current,
+		});
+
+		animation_2.current = assembleTopBody({
+			keycaps: keycaps.current.getEl(),
+			keycapsMaterial: keycaps.current.getMaterials(),
+			knob: knob.current,
+			knobHolder: knobHolder.current,
+			topCase: topCase.current,
+		});
+
+		animation_3.current = expandWholeBody({
+			keycaps: keycaps.current.getEl(),
+			switches: switches.current,
+			knob: knob.current,
+			knobHolder: knobHolder.current,
+			topCase: topCase.current,
+			plate: plate.current,
+			IXPEFoam: IXPEFoam.current,
+			PETFilm: PETFilm.current,
+			bottomCase: bottomCase.current,
+		});
+	}, []);
 
 	useEffect(() => {
-		console.log(nodes);
+		const unsubscribeExpandKeyboard_A = mapEventChannel.on('expandKeyboard_A', () => {
+			animation_3.current.play(0).timeScale(1);
+		});
+
+		const unsubscribeAssembleKeyboard_A = mapEventChannel.on('assembleKeyboard_A', () => {
+			animation_3.current.timeScale(1).reverse();
+		});
+
+		const unsubscribShowBaseKeyboard_A = mapEventChannel.on('showBaseKeyboard_A', () => {});
+
+		const unsubscribeShowTopCase_A = mapEventChannel.on('showTopCase_A', () => {
+			animation_2.current.play(0).timeScale(1);
+			keycaps.current.showDecal(true);
+		});
+
+		return () => {
+			unsubscribeExpandKeyboard_A();
+			unsubscribeAssembleKeyboard_A();
+			unsubscribShowBaseKeyboard_A();
+			unsubscribeShowTopCase_A();
+		};
 	}, []);
+
+	useEffect(() => {
+		const unsubscribeQueuingSwitches_A = mapEventChannel.on('queuingSwitches_A', () => {
+			setSwitchesQueued(!switchesQueued);
+
+			switchesQueued
+				? animation_1.current.timeScale(20).reverse()
+				: animation_1.current.play(0).timeScale(1);
+		});
+
+		return () => {
+			unsubscribeQueuingSwitches_A();
+		};
+	}, [switchesQueued]);
 
 	useEffect(() => {
 		topCaseMaterial.color.set(colorThemes[theme].case.color);
 		knobMaterial.color.set(colorThemes[theme].knob.color);
 	}, [theme]);
+
+	useFrame(() => {
+		lerpOpacity(contactShadow.current, switchesQueued);
+	});
 
 	return (
 		<>
@@ -118,18 +184,19 @@ export function Scene() {
 
 			<ContactShadows
 				ref={contactShadow}
-				position={[0, -0.8, 0]}
+				position={[0, -2.3, 0]}
 				scale={10}
 				blur={2.5}
-				far={0.8}
+				far={2.3}
 			/>
 
 			<Float speed={0}>
 				<Switches
+					ref={switches}
 					nodes={nodes}
 					visible={showSwitches}
 					color={new THREE.Color(switchColor)}
-					isQueued={isSwitchesQueued}
+					isQueued={switchesQueued}
 				/>
 
 				<Keycaps
@@ -139,8 +206,6 @@ export function Scene() {
 					showKeycasPrimary={showKeycasPrimary}
 					showKeycapsSecondary={showKeycapsSecondary}
 					showKeycapsTertiary={showKeycapsTertiary}
-					showDecal={isSwitchesQueued}
-					visible={showKeycaps}
 				/>
 
 				<mesh
@@ -148,7 +213,7 @@ export function Scene() {
 					visible={showKnob}
 					geometry={(nodes['Knob'] as THREE.Mesh).geometry}
 					position={(nodes['Knob'] as THREE.Mesh).position}
-					material={knobMaterial}
+					material={(nodes['Knob'] as THREE.Mesh).material}
 					material-metalness={0.4}
 					material-roughness={0.4}
 					// material-roughnessMap={knobRoughness}
@@ -157,6 +222,7 @@ export function Scene() {
 				/>
 
 				<mesh
+					ref={knobHolder}
 					visible={showKnobHolder}
 					geometry={(nodes['E-100_Holder'] as THREE.Mesh).geometry}
 					position={(nodes['E-100_Holder'] as THREE.Mesh).position}
@@ -180,8 +246,8 @@ export function Scene() {
 					ref={plate}
 					visible={showPlate}
 					geometry={(nodes.Plate as THREE.Mesh).geometry}
-					material={(nodes.Plate as THREE.Mesh).material}
 					position={(nodes.Plate as THREE.Mesh).position}
+					material={(nodes.Plate as THREE.Mesh).material}
 					material-transparent={true}
 					castShadow={false}
 				/>
@@ -190,8 +256,8 @@ export function Scene() {
 					ref={IXPEFoam}
 					visible={showIXPEFoam}
 					geometry={(nodes.IXPEFoam as THREE.Mesh).geometry}
-					material={(nodes.IXPEFoam as THREE.Mesh).material}
 					position={(nodes.IXPEFoam as THREE.Mesh).position}
+					material={(nodes.IXPEFoam as THREE.Mesh).material}
 					material-transparent={true}
 					castShadow={false}
 				/>
@@ -200,8 +266,8 @@ export function Scene() {
 					ref={PETFilm}
 					visible={showPETFilm}
 					geometry={(nodes.PETFilm as THREE.Mesh).geometry}
-					material={(nodes.PETFilm as THREE.Mesh).material}
 					position={(nodes.PETFilm as THREE.Mesh).position}
+					material={(nodes.PETFilm as THREE.Mesh).material}
 					material-transparent={true}
 					castShadow={false}
 				/>
@@ -212,22 +278,22 @@ export function Scene() {
 				>
 					<mesh
 						geometry={(nodes.BottomCase as THREE.Mesh).geometry}
-						material={(nodes.BottomCase as THREE.Mesh).material}
 						position={(nodes.BottomCase as THREE.Mesh).position}
+						material={(nodes.BottomCase as THREE.Mesh).material}
 						material-transparent={true}
 						castShadow={false}
 					/>
 					<mesh
 						geometry={(nodes.BottomCase_Plate as THREE.Mesh).geometry}
-						material={(nodes.BottomCase_Plate as THREE.Mesh).material}
 						position={(nodes.BottomCase_Plate as THREE.Mesh).position}
+						material={(nodes.BottomCase_Plate as THREE.Mesh).material}
 						material-transparent={true}
 						castShadow={false}
 					/>
 					<mesh
 						geometry={(nodes.BottomCase_Screws as THREE.Mesh).geometry}
-						material={(nodes.BottomCase_Screws as THREE.Mesh).material}
 						position={(nodes.BottomCase_Screws as THREE.Mesh).position}
+						material={(nodes.BottomCase_Screws as THREE.Mesh).material}
 						material-transparent={true}
 						castShadow={false}
 					/>

@@ -1,28 +1,39 @@
 import * as THREE from 'three';
-import { ReactElement, createContext, useContext, useMemo, useRef } from 'react';
+import {
+	ForwardedRef,
+	ReactElement,
+	createContext,
+	forwardRef,
+	useContext,
+	useMemo,
+	useRef,
+} from 'react';
 import { Merged } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
 import { switchData } from './store';
 
 const context = createContext(null);
 
-export function Switches({
-	nodes,
-	visible,
-	color,
-	isQueued,
-}: {
-	nodes: any;
-	visible: boolean;
-	color: THREE.Color;
-	isQueued: boolean;
-}) {
+export const Switches = forwardRef(function Switches(
+	{
+		nodes,
+		visible,
+		color,
+		isQueued,
+	}: {
+		nodes: any;
+		visible: boolean;
+		color: THREE.Color;
+		isQueued: boolean;
+	},
+	ref: ForwardedRef<THREE.Group>
+) {
 	return (
 		<Instances
 			nodes={nodes}
 			color={color}
 		>
-			<>
+			<group ref={ref}>
 				{switchData.map((row, i) =>
 					row.map((props, j) => (
 						<Model
@@ -34,10 +45,10 @@ export function Switches({
 						/>
 					))
 				)}
-			</>
+			</group>
 		</Instances>
 	);
-}
+});
 
 function Instances({
 	nodes,
@@ -145,20 +156,22 @@ function Model({
 				)
 			);
 
-			ref.current.position.x = THREE.MathUtils.lerp(
-				ref.current.position.x,
-				isQueued ? targetPosition[0] : Math.sin(t / 200) * 6 + 2.5,
-				0.08
-			);
-			ref.current.position.y = THREE.MathUtils.lerp(
-				ref.current.position.y,
-				isQueued ? 0 : Math.sin(t / 1.5) / 2,
-				0.08
-			);
-			ref.current.position.z = THREE.MathUtils.lerp(
-				ref.current.position.z,
-				isQueued ? targetPosition[2] : Math.sin(t / 100) * 4,
-				0.08
+			ref.current.position.set(
+				THREE.MathUtils.lerp(
+					ref.current.position.x,
+					isQueued ? targetPosition[0] : Math.sin(t / 200) * 6 + 2.5,
+					0.08
+				),
+				THREE.MathUtils.lerp(
+					ref.current.position.y,
+					isQueued ? 0 : Math.sin(t / 1.5) / 2,
+					0.08
+				),
+				THREE.MathUtils.lerp(
+					ref.current.position.z,
+					isQueued ? targetPosition[2] : Math.sin(t / 100) * 4,
+					0.08
+				)
 			);
 
 			ref.current.scale.x =

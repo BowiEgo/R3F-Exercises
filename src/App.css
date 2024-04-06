@@ -8,3 +8,14 @@ body,
 * {
 	touch-action: none;
 }
+
+.tempBtnList {
+	position: fixed;
+	top: 10px;
+	left: 50%;
+}
+
+.tempBtn {
+	display: flex;
+	/* flex-direction: row; */
+}
