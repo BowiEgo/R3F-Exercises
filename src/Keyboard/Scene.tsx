@@ -1,12 +1,12 @@
 import * as THREE from 'three';
-import { ContactShadows, Float, useGLTF, useTexture } from '@react-three/drei';
+import { ContactShadows, useGLTF, useScroll, useTexture } from '@react-three/drei';
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useControls } from 'leva';
 import { decalList } from './decal';
 import { Switches } from './Switches';
 import { Env } from './Env';
 import { Keycaps } from './Keycaps';
-import { colorThemes } from './store';
+import { colorThemes } from './datas';
 import { EventChannel } from './event';
 import { useFrame, useThree } from '@react-three/fiber';
 import {
@@ -15,9 +15,15 @@ import {
 	cameraAnimation,
 	expandWholeBody,
 } from './Animations';
+import useStore from './store';
 
 export function Scene() {
+	const { phase, setPhase } = useStore();
+	const scroll = useScroll();
+
 	const [switchesQueued, setSwitchesQueued] = useState(false);
+
+	const cameraTarget = useRef<THREE.Vector3>(new THREE.Vector3());
 
 	const animation_camera = useRef<GSAPTimeline>(null!);
 	const animation_1 = useRef<GSAPTimeline>(null!);
@@ -35,7 +41,9 @@ export function Scene() {
 	const bottomCase = useRef<THREE.Group>(null!);
 	const contactShadow = useRef<THREE.Group>(null!);
 
-	const { camera } = useThree();
+	const keycapsVisible = useRef(false);
+
+	const { camera } = useThree((state) => state);
 
 	const knobNormal = useTexture(`assets/models/Keyboard/textures/Knob_Normal_Map.png`);
 	const knobRoughness = useTexture(`assets/models/Keyboard/textures/Knob_Roughness_Map.png`);
@@ -71,7 +79,7 @@ export function Scene() {
 		showBottomCase,
 	} = useControls({
 		theme: {
-			value: 0,
+			value: 1,
 			options: [0, 1, 2],
 		},
 		showKeycasPrimary: true,
@@ -91,7 +99,7 @@ export function Scene() {
 	});
 
 	useLayoutEffect(() => {
-		animation_camera.current = cameraAnimation({ camera });
+		animation_camera.current = cameraAnimation({ camera, cameraTarget: cameraTarget.current });
 
 		animation_1.current = assembleBottomBody({
 			plate: plate.current,
@@ -122,11 +130,23 @@ export function Scene() {
 	}, []);
 
 	useEffect(() => {
+		const unsubscribePhase = useStore.subscribe(
+			(state) => state.phase,
+			(value, _oldValue) => {
+				if (value === 2) {
+					keycapsVisible.current = true;
+				}
+			}
+		);
+
 		const unsubscribeCameraMotion_A = EventChannel.on('cameraMotion_A', (forward: boolean) => {
+			console.log(phase + 1, phase);
+
 			if (forward) {
-				animation_camera.current.tweenTo(animation_camera.current.nextLabel());
+				// animation_camera.current.play();
+				animation_camera.current.tweenFromTo(phase - 1 + '', phase + '');
 			} else {
-				animation_camera.current.tweenTo(animation_camera.current.previousLabel());
+				animation_camera.current.tweenFromTo(phase - 1 + '', phase - 2 + '');
 			}
 		});
 
@@ -150,11 +170,12 @@ export function Scene() {
 		);
 
 		return () => {
+			unsubscribePhase();
 			unsubscribeCameraMotion_A();
 			unsubscribeShowTopCase_A();
 			unsubscribeExpandKeyboard_A();
 		};
-	}, []);
+	}, [phase]);
 
 	useEffect(() => {
 		const unsubscribeQueuingSwitches_A = EventChannel.on(
@@ -178,23 +199,39 @@ export function Scene() {
 		knobMaterial.color.set(colorThemes[theme].knob.color);
 	}, [theme]);
 
-	const { cameraX, cameraY, cameraZ } = useControls({
-		cameraX: { value: -5 },
-		cameraY: { value: 4 },
-		cameraZ: { value: 4 },
-	});
+	// const { cameraX, cameraY, cameraZ } = useControls({
+	// 	cameraX: { value: -5 },
+	// 	cameraY: { value: 4 },
+	// 	cameraZ: { value: 4 },
+	// });
 
-	useEffect(() => {
-		camera.position.set(cameraX, cameraY, cameraZ);
-	}, [cameraX, cameraY, cameraZ]);
+	// useEffect(() => {
+	// 	camera.position.set(cameraX, cameraY, cameraZ);
+	// }, [cameraX, cameraY, cameraZ]);
 
 	useFrame(() => {
+		const r0 = scroll.offset < 0.1;
+		const r1 = scroll.offset >= 0.1 && scroll.offset < 0.5;
+		const r2 = scroll.offset >= 0.5 && scroll.offset < 0.75;
+		const r3 = scroll.offset >= 0.95 && scroll.offset < 1;
+
+		if (r0) {
+			camera.position.x = Math.sin(scroll.offset * 5 - 1.5) * 5;
+			camera.position.z = Math.cos(scroll.offset * 5 - 1.5) * 5 + 1;
+		}
+
+		r0 && setPhase(0);
+		r1 && setPhase(1);
+		r2 && setPhase(2);
+		r3 && setPhase(3);
+
+		camera.lookAt(cameraTarget.current);
 		lerpOpacity(contactShadow.current, switchesQueued);
 	});
 
 	return (
 		<>
-			<ambientLight intensity={0.7} />
+			<ambientLight intensity={1} />
 
 			<Env />
 
@@ -224,115 +261,114 @@ export function Scene() {
 				far={2.3}
 			/>
 
-			<Float speed={0}>
-				<Switches
-					ref={switches}
-					nodes={nodes}
-					visible={showSwitches}
-					color={new THREE.Color(switchColor)}
-					isQueued={switchesQueued}
-				/>
+			<Switches
+				ref={switches}
+				nodes={nodes}
+				visible={showSwitches}
+				color={new THREE.Color(switchColor)}
+				isQueued={switchesQueued}
+			/>
 
-				<Keycaps
-					ref={keycaps}
-					nodes={nodes}
-					theme={theme}
-					showKeycasPrimary={showKeycasPrimary}
-					showKeycapsSecondary={showKeycapsSecondary}
-					showKeycapsTertiary={showKeycapsTertiary}
-				/>
+			<Keycaps
+				ref={keycaps}
+				visible={keycapsVisible.current}
+				nodes={nodes}
+				theme={theme}
+				showKeycasPrimary={showKeycasPrimary}
+				showKeycapsSecondary={showKeycapsSecondary}
+				showKeycapsTertiary={showKeycapsTertiary}
+			/>
 
+			<mesh
+				ref={knob}
+				visible={showKnob}
+				geometry={(nodes['Knob'] as THREE.Mesh).geometry}
+				position={(nodes['Knob'] as THREE.Mesh).position}
+				material={(nodes['Knob'] as THREE.Mesh).material}
+				material-metalness={0.4}
+				material-roughness={0.4}
+				// material-roughnessMap={knobRoughness}
+				material-transparent={true}
+				castShadow={false}
+			/>
+
+			<mesh
+				ref={knobHolder}
+				visible={showKnobHolder}
+				geometry={(nodes['E-100_Holder'] as THREE.Mesh).geometry}
+				position={(nodes['E-100_Holder'] as THREE.Mesh).position}
+				material={topCaseMaterial}
+				material-roughness={0.8}
+				castShadow={false}
+			/>
+
+			<mesh
+				ref={topCase}
+				visible={showTopCase}
+				geometry={(nodes.TopCase as THREE.Mesh).geometry}
+				position={(nodes.TopCase as THREE.Mesh).position}
+				material={topCaseMaterial}
+				material-roughness={0.8}
+				material-transparent={true}
+				castShadow={false}
+			/>
+
+			<mesh
+				ref={plate}
+				visible={showPlate}
+				geometry={(nodes.Plate as THREE.Mesh).geometry}
+				position={(nodes.Plate as THREE.Mesh).position}
+				material={(nodes.Plate as THREE.Mesh).material}
+				material-transparent={true}
+				castShadow={false}
+			/>
+
+			<mesh
+				ref={IXPEFoam}
+				visible={showIXPEFoam}
+				geometry={(nodes.IXPEFoam as THREE.Mesh).geometry}
+				position={(nodes.IXPEFoam as THREE.Mesh).position}
+				material={(nodes.IXPEFoam as THREE.Mesh).material}
+				material-transparent={true}
+				castShadow={false}
+			/>
+
+			<mesh
+				ref={PETFilm}
+				visible={showPETFilm}
+				geometry={(nodes.PETFilm as THREE.Mesh).geometry}
+				position={(nodes.PETFilm as THREE.Mesh).position}
+				material={(nodes.PETFilm as THREE.Mesh).material}
+				material-transparent={true}
+				castShadow={false}
+			/>
+
+			<group
+				ref={bottomCase}
+				visible={showBottomCase}
+			>
 				<mesh
-					ref={knob}
-					visible={showKnob}
-					geometry={(nodes['Knob'] as THREE.Mesh).geometry}
-					position={(nodes['Knob'] as THREE.Mesh).position}
-					material={(nodes['Knob'] as THREE.Mesh).material}
-					material-metalness={0.4}
-					material-roughness={0.4}
-					// material-roughnessMap={knobRoughness}
+					geometry={(nodes.BottomCase as THREE.Mesh).geometry}
+					position={(nodes.BottomCase as THREE.Mesh).position}
+					material={(nodes.BottomCase as THREE.Mesh).material}
 					material-transparent={true}
 					castShadow={false}
 				/>
-
 				<mesh
-					ref={knobHolder}
-					visible={showKnobHolder}
-					geometry={(nodes['E-100_Holder'] as THREE.Mesh).geometry}
-					position={(nodes['E-100_Holder'] as THREE.Mesh).position}
-					material={topCaseMaterial}
-					material-roughness={0.8}
-					castShadow={false}
-				/>
-
-				<mesh
-					ref={topCase}
-					visible={showTopCase}
-					geometry={(nodes.TopCase as THREE.Mesh).geometry}
-					position={(nodes.TopCase as THREE.Mesh).position}
-					material={topCaseMaterial}
-					material-roughness={0.8}
+					geometry={(nodes.BottomCase_Plate as THREE.Mesh).geometry}
+					position={(nodes.BottomCase_Plate as THREE.Mesh).position}
+					material={(nodes.BottomCase_Plate as THREE.Mesh).material}
 					material-transparent={true}
 					castShadow={false}
 				/>
-
 				<mesh
-					ref={plate}
-					visible={showPlate}
-					geometry={(nodes.Plate as THREE.Mesh).geometry}
-					position={(nodes.Plate as THREE.Mesh).position}
-					material={(nodes.Plate as THREE.Mesh).material}
+					geometry={(nodes.BottomCase_Screws as THREE.Mesh).geometry}
+					position={(nodes.BottomCase_Screws as THREE.Mesh).position}
+					material={(nodes.BottomCase_Screws as THREE.Mesh).material}
 					material-transparent={true}
 					castShadow={false}
 				/>
-
-				<mesh
-					ref={IXPEFoam}
-					visible={showIXPEFoam}
-					geometry={(nodes.IXPEFoam as THREE.Mesh).geometry}
-					position={(nodes.IXPEFoam as THREE.Mesh).position}
-					material={(nodes.IXPEFoam as THREE.Mesh).material}
-					material-transparent={true}
-					castShadow={false}
-				/>
-
-				<mesh
-					ref={PETFilm}
-					visible={showPETFilm}
-					geometry={(nodes.PETFilm as THREE.Mesh).geometry}
-					position={(nodes.PETFilm as THREE.Mesh).position}
-					material={(nodes.PETFilm as THREE.Mesh).material}
-					material-transparent={true}
-					castShadow={false}
-				/>
-
-				<group
-					ref={bottomCase}
-					visible={showBottomCase}
-				>
-					<mesh
-						geometry={(nodes.BottomCase as THREE.Mesh).geometry}
-						position={(nodes.BottomCase as THREE.Mesh).position}
-						material={(nodes.BottomCase as THREE.Mesh).material}
-						material-transparent={true}
-						castShadow={false}
-					/>
-					<mesh
-						geometry={(nodes.BottomCase_Plate as THREE.Mesh).geometry}
-						position={(nodes.BottomCase_Plate as THREE.Mesh).position}
-						material={(nodes.BottomCase_Plate as THREE.Mesh).material}
-						material-transparent={true}
-						castShadow={false}
-					/>
-					<mesh
-						geometry={(nodes.BottomCase_Screws as THREE.Mesh).geometry}
-						position={(nodes.BottomCase_Screws as THREE.Mesh).position}
-						material={(nodes.BottomCase_Screws as THREE.Mesh).material}
-						material-transparent={true}
-						castShadow={false}
-					/>
-				</group>
-			</Float>
+			</group>
 		</>
 	);
 }

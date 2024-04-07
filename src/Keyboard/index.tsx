@@ -1,56 +1,59 @@
 import { Canvas } from '@react-three/fiber';
 import { Scene } from './Scene';
-import { OrbitControls } from '@react-three/drei';
+import { ScrollControls } from '@react-three/drei';
 import { useControls } from 'leva';
 import { EventChannel } from './event';
-import { useEffect, useState } from 'react';
-import { usePrevious } from '../hooks';
+import { useEffect } from 'react';
+import useStore from './store';
 
 export default function LivingRoom() {
 	const { bgColor } = useControls({
 		bgColor: '#fff',
 	});
 
-	const [stage, setStage] = useState(0);
-	const oldStage = usePrevious(stage);
-
-	const nextStage = () => {
-		if (stage < 3) setStage(stage + 1);
-		EventChannel.emit('cameraMotion_A', true);
-	};
-	const prevStage = () => {
-		if (stage > 0) setStage(stage - 1);
-		EventChannel.emit('cameraMotion_A', false);
-	};
+	// const { nextPhase, prevPhase } = useStore();
 
 	useEffect(() => {
-		const forward = (oldStage ?? 0) < stage;
+		const unsubscribePhase = useStore.subscribe(
+			(state) => state.phase,
+			(value, oldValue) => {
+				if (value === oldValue) return;
+				console.log(`phase change from ${oldValue} to ${value}`);
+				const forward = (oldValue ?? 0) < value;
 
-		switch (stage) {
-			case 0:
-				EventChannel.emit('queuingSwitches_A', false);
-				break;
-			case 1:
-				if (forward) {
-					EventChannel.emit('queuingSwitches_A', true);
-				} else {
-					EventChannel.emit('showTopCase_A', false);
+				EventChannel.emit('cameraMotion_A', forward);
+
+				switch (value) {
+					case 0:
+						EventChannel.emit('queuingSwitches_A', false);
+						break;
+					case 1:
+						if (forward) {
+							EventChannel.emit('queuingSwitches_A', true);
+						} else {
+							EventChannel.emit('showTopCase_A', false);
+						}
+						break;
+					case 2:
+						if (forward) {
+							EventChannel.emit('showTopCase_A', true);
+						} else {
+							EventChannel.emit('expandKeyboard_A', false);
+						}
+						break;
+					case 3:
+						EventChannel.emit('expandKeyboard_A', true);
+						break;
+					default:
+						break;
 				}
-				break;
-			case 2:
-				if (forward) {
-					EventChannel.emit('showTopCase_A', true);
-				} else {
-					EventChannel.emit('expandKeyboard_A', false);
-				}
-				break;
-			case 3:
-				EventChannel.emit('expandKeyboard_A', true);
-				break;
-			default:
-				break;
-		}
-	}, [stage]);
+			}
+		);
+
+		return () => {
+			unsubscribePhase();
+		};
+	}, []);
 
 	return (
 		<>
@@ -63,30 +66,32 @@ export default function LivingRoom() {
 					attach='background'
 				/>
 
-				<OrbitControls makeDefault />
+				{/* <OrbitControls makeDefault /> */}
 
 				{/* <ambientLight /> */}
 				{/* <directionalLight castShadow /> */}
 
 				{/* <Environment preset='sunset' /> */}
 
-				<Scene />
+				<ScrollControls pages={3}>
+					<Scene />
+				</ScrollControls>
 			</Canvas>
 
-			<div className='tempBtnList'>
+			{/* <div className='tempBtnList'>
 				<button
 					className='tempBtn'
-					onClick={nextStage}
+					onClick={nextPhase}
 				>
-					nextStage
+					nextPhase
 				</button>
 				<button
 					className='tempBtn'
-					onClick={prevStage}
+					onClick={prevPhase}
 				>
-					prevStage
+					prevPhase
 				</button>
-			</div>
+			</div> */}
 		</>
 	);
 }

@@ -10,7 +10,7 @@ import {
 } from 'react';
 import { Merged } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
-import { switchData } from './store';
+import { switchData } from './datas';
 
 const context = createContext(null);
 

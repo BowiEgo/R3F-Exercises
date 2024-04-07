@@ -2,22 +2,6 @@ import * as THREE from 'three';
 import gsap from 'gsap';
 import { KeyCapMaterials } from './Keycaps';
 
-// export function animations({
-// 	IXPEFoam,
-// 	PETFilm,
-// 	bottomCase,
-// }: {
-// 	IXPEFoam: THREE.Mesh;
-// 	PETFilm: THREE.Mesh;
-// 	bottomCase: THREE.Group;
-// }) {
-// 	const master = gsap.timeline();
-
-// 	master.add(surfacing({ IXPEFoam, PETFilm, bottomCase }));
-
-// 	return master;
-// }
-
 export function assembleBottomBody({
 	plate,
 	IXPEFoam,
@@ -30,6 +14,7 @@ export function assembleBottomBody({
 	bottomCase: THREE.Group;
 }) {
 	const tl = gsap.timeline({
+		paused: true,
 		defaults: { duration: 1, ease: 'none' },
 	});
 
@@ -53,7 +38,7 @@ export function assembleBottomBody({
 	tl.fromTo(positionTargets, { y: -1 }, { y: 0, ease: 'power1.out' });
 	tl.fromTo(materialTargets, { opacity: 0 }, { opacity: 1, ease: 'none' }, '<');
 
-	return tl.pause();
+	return tl;
 }
 
 export function assembleTopBody({
@@ -70,6 +55,7 @@ export function assembleTopBody({
 	topCase: THREE.Mesh;
 }) {
 	const tl = gsap.timeline({
+		paused: true,
 		defaults: { duration: 1, ease: 'none' },
 	});
 
@@ -91,7 +77,7 @@ export function assembleTopBody({
 	tl.fromTo(positionTargets, { y: 1 }, { y: 0, ease: 'back.inOut' });
 	tl.fromTo(materialTargets, { opacity: 0 }, { opacity: 1, ease: 'none' }, '<');
 
-	return tl.pause();
+	return tl;
 }
 
 export function expandWholeBody({
@@ -116,6 +102,7 @@ export function expandWholeBody({
 	bottomCase: THREE.Group;
 }) {
 	const tl = gsap.timeline({
+		paused: true,
 		defaults: { duration: 1, ease: 'none' },
 	});
 
@@ -152,18 +139,57 @@ export function expandWholeBody({
 		}
 	);
 
-	return tl.pause();
+	return tl;
 }
 
-export function cameraAnimation({ camera }: { camera: THREE.Camera }) {
+export function cameraAnimation({
+	camera,
+	cameraTarget,
+}: {
+	camera: THREE.Camera;
+	cameraTarget: THREE.Vector3;
+}) {
 	const tl = gsap.timeline({
+		paused: true,
 		defaults: { duration: 0.5, ease: 'none' },
 	});
+	tl.to(camera.position, { x: -4, y: 3, z: 4, ease: 'sine.inOut', duration: 0.1 })
+		.add('0')
+		.to(camera.position, { x: 0, y: 3, z: 6.5, ease: 'sine.inOut' })
+		.to(camera.position, {
+			x: 0,
+			y: 5,
+			z: 2.5,
+			ease: 'back.out',
+			duration: 1.5,
+		})
+		.add('1')
+		/* prettier-ignore */
+		.to([camera.position, cameraTarget], {
+			x: (index, _target, _targets) => {
+				if (index === 0) {
+					return -4;
+				} else {
+					return 1;
+				}
+			},
+			y: (index, _target, _targets) => {
+				if (index === 0) {
+					return 2;
+				} else {
+					return -1;
+				}
+			},
+			z: (index, _target, _targets) => {
+				if (index === 0) {
+					return 6;
+				} else {
+					return 0;
+				}
+			},
+			ease: 'power1.in',
+		})
+		.add('2');
 
-	/* prettier-ignore */
-	tl.to(camera.position, { x: 0, y: 3, z: 6.5, ease: 'power1.in' }, 'stage1')
-	.to(camera.position, { x: 0, y: 8, z: 4.5, ease: 'power1.in' }, 'stage2')
-	.to(camera.position, { x: 6, y: 5, z: 8, ease: 'power1.in' }, 'stage3')
-
-	return tl.pause();
+	return tl;
 }

@@ -10,7 +10,7 @@ import {
 	useState,
 } from 'react';
 import { decalList } from './decal';
-import { colorThemes } from './store';
+import { colorThemes } from './datas';
 
 export type KeyCapMaterials = {
 	primary: THREE.MeshStandardMaterial;
@@ -25,12 +25,14 @@ export const Keycaps = forwardRef(function Keycaps(
 		showKeycasPrimary = true,
 		showKeycapsSecondary = true,
 		showKeycapsTertiary = true,
+		visible = false,
 	}: {
 		nodes: any;
 		theme: number;
 		showKeycasPrimary: boolean;
 		showKeycapsSecondary: boolean;
 		showKeycapsTertiary: boolean;
+		visible?: boolean;
 	},
 	ref: ForwardedRef<any>
 ) {
@@ -104,7 +106,10 @@ export const Keycaps = forwardRef(function Keycaps(
 	}, [theme]);
 
 	return (
-		<group ref={elRef}>
+		<group
+			ref={elRef}
+			visible={visible}
+		>
 			{decalList.map((item) => (
 				<mesh
 					key={item.name}
