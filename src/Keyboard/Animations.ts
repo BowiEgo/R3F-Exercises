@@ -30,7 +30,7 @@ export function assembleBottomBody({
 	bottomCase: THREE.Group;
 }) {
 	const tl = gsap.timeline({
-		defaults: { duration: 1, ease: 'none', autoRemoveChildren: false },
+		defaults: { duration: 1, ease: 'none' },
 	});
 
 	const materialTargets = [
@@ -70,7 +70,7 @@ export function assembleTopBody({
 	topCase: THREE.Mesh;
 }) {
 	const tl = gsap.timeline({
-		defaults: { duration: 1, ease: 'none', autoRemoveChildren: false },
+		defaults: { duration: 1, ease: 'none' },
 	});
 
 	const materialTargets = [
@@ -116,7 +116,7 @@ export function expandWholeBody({
 	bottomCase: THREE.Group;
 }) {
 	const tl = gsap.timeline({
-		defaults: { duration: 1, ease: 'none', autoRemoveChildren: false },
+		defaults: { duration: 1, ease: 'none' },
 	});
 
 	const positionTargets = [
@@ -151,6 +151,19 @@ export function expandWholeBody({
 			ease: 'back.inOut',
 		}
 	);
+
+	return tl.pause();
+}
+
+export function cameraAnimation({ camera }: { camera: THREE.Camera }) {
+	const tl = gsap.timeline({
+		defaults: { duration: 0.5, ease: 'none' },
+	});
+
+	/* prettier-ignore */
+	tl.to(camera.position, { x: 0, y: 3, z: 6.5, ease: 'power1.in' }, 'stage1')
+	.to(camera.position, { x: 0, y: 8, z: 4.5, ease: 'power1.in' }, 'stage2')
+	.to(camera.position, { x: 6, y: 5, z: 8, ease: 'power1.in' }, 'stage3')
 
 	return tl.pause();
 }

@@ -2,7 +2,7 @@ import { Canvas } from '@react-three/fiber';
 import { Scene } from './Scene';
 import { OrbitControls } from '@react-three/drei';
 import { useControls } from 'leva';
-import { mapEventChannel } from './event';
+import { EventChannel } from './event';
 import { useEffect, useState } from 'react';
 import { usePrevious } from '../hooks';
 
@@ -16,9 +16,11 @@ export default function LivingRoom() {
 
 	const nextStage = () => {
 		if (stage < 3) setStage(stage + 1);
+		EventChannel.emit('cameraMotion_A', true);
 	};
 	const prevStage = () => {
 		if (stage > 0) setStage(stage - 1);
+		EventChannel.emit('cameraMotion_A', false);
 	};
 
 	useEffect(() => {
@@ -26,24 +28,24 @@ export default function LivingRoom() {
 
 		switch (stage) {
 			case 0:
-				mapEventChannel.emit('queuingSwitches_A', false);
+				EventChannel.emit('queuingSwitches_A', false);
 				break;
 			case 1:
 				if (forward) {
-					mapEventChannel.emit('queuingSwitches_A', true);
+					EventChannel.emit('queuingSwitches_A', true);
 				} else {
-					mapEventChannel.emit('showTopCase_A', false);
+					EventChannel.emit('showTopCase_A', false);
 				}
 				break;
 			case 2:
 				if (forward) {
-					mapEventChannel.emit('showTopCase_A', true);
+					EventChannel.emit('showTopCase_A', true);
 				} else {
-					mapEventChannel.emit('expandKeyboard_A', false);
+					EventChannel.emit('expandKeyboard_A', false);
 				}
 				break;
 			case 3:
-				mapEventChannel.emit('expandKeyboard_A', true);
+				EventChannel.emit('expandKeyboard_A', true);
 				break;
 			default:
 				break;

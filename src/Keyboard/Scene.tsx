@@ -7,13 +7,19 @@ import { Switches } from './Switches';
 import { Env } from './Env';
 import { Keycaps } from './Keycaps';
 import { colorThemes } from './store';
-import { mapEventChannel } from './event';
-import { useFrame } from '@react-three/fiber';
-import { assembleBottomBody, assembleTopBody, expandWholeBody } from './Animations';
+import { EventChannel } from './event';
+import { useFrame, useThree } from '@react-three/fiber';
+import {
+	assembleBottomBody,
+	assembleTopBody,
+	cameraAnimation,
+	expandWholeBody,
+} from './Animations';
 
 export function Scene() {
 	const [switchesQueued, setSwitchesQueued] = useState(false);
 
+	const animation_camera = useRef<GSAPTimeline>(null!);
 	const animation_1 = useRef<GSAPTimeline>(null!);
 	const animation_2 = useRef<GSAPTimeline>(null!);
 	const animation_3 = useRef<GSAPTimeline>(null!);
@@ -28,6 +34,8 @@ export function Scene() {
 	const PETFilm = useRef<THREE.Mesh>(null!);
 	const bottomCase = useRef<THREE.Group>(null!);
 	const contactShadow = useRef<THREE.Group>(null!);
+
+	const { camera } = useThree();
 
 	const knobNormal = useTexture(`assets/models/Keyboard/textures/Knob_Normal_Map.png`);
 	const knobRoughness = useTexture(`assets/models/Keyboard/textures/Knob_Roughness_Map.png`);
@@ -83,6 +91,8 @@ export function Scene() {
 	});
 
 	useLayoutEffect(() => {
+		animation_camera.current = cameraAnimation({ camera });
+
 		animation_1.current = assembleBottomBody({
 			plate: plate.current,
 			IXPEFoam: IXPEFoam.current,
@@ -112,7 +122,15 @@ export function Scene() {
 	}, []);
 
 	useEffect(() => {
-		const unsubscribeShowTopCase_A = mapEventChannel.on('showTopCase_A', (forward: boolean) => {
+		const unsubscribeCameraMotion_A = EventChannel.on('cameraMotion_A', (forward: boolean) => {
+			if (forward) {
+				animation_camera.current.tweenTo(animation_camera.current.nextLabel());
+			} else {
+				animation_camera.current.tweenTo(animation_camera.current.previousLabel());
+			}
+		});
+
+		const unsubscribeShowTopCase_A = EventChannel.on('showTopCase_A', (forward: boolean) => {
 			if (forward) {
 				animation_2.current.play(0).timeScale(1);
 				keycaps.current.showDecal(true);
@@ -122,7 +140,7 @@ export function Scene() {
 			}
 		});
 
-		const unsubscribeExpandKeyboard_A = mapEventChannel.on(
+		const unsubscribeExpandKeyboard_A = EventChannel.on(
 			'expandKeyboard_A',
 			(forward: boolean) => {
 				forward
@@ -132,13 +150,14 @@ export function Scene() {
 		);
 
 		return () => {
+			unsubscribeCameraMotion_A();
 			unsubscribeShowTopCase_A();
 			unsubscribeExpandKeyboard_A();
 		};
 	}, []);
 
 	useEffect(() => {
-		const unsubscribeQueuingSwitches_A = mapEventChannel.on(
+		const unsubscribeQueuingSwitches_A = EventChannel.on(
 			'queuingSwitches_A',
 			(forward: boolean) => {
 				setSwitchesQueued(forward);
@@ -158,6 +177,16 @@ export function Scene() {
 		topCaseMaterial.color.set(colorThemes[theme].case.color);
 		knobMaterial.color.set(colorThemes[theme].knob.color);
 	}, [theme]);
+
+	const { cameraX, cameraY, cameraZ } = useControls({
+		cameraX: { value: -5 },
+		cameraY: { value: 4 },
+		cameraZ: { value: 4 },
+	});
+
+	useEffect(() => {
+		camera.position.set(cameraX, cameraY, cameraZ);
+	}, [cameraX, cameraY, cameraZ]);
 
 	useFrame(() => {
 		lerpOpacity(contactShadow.current, switchesQueued);
