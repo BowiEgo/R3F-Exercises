@@ -7,6 +7,9 @@ import { useEffect } from 'react';
 import useStore from './store';
 import { Selection } from '@react-three/postprocessing';
 import Effects from './Effects';
+import './styles.css';
+import { ScrollIcon } from './ScrollIcon';
+import { IntroMask } from './IntroMask';
 
 export default function LivingRoom() {
 	const { bgColor } = useControls({
@@ -82,6 +85,9 @@ export default function LivingRoom() {
 					</Selection>
 				</ScrollControls>
 			</Canvas>
+
+			<IntroMask />
+			<ScrollIcon />
 
 			{/* <div className='tempBtnList'>
 				<button

@@ -1,4 +1,4 @@
-import { Leva } from 'leva';
+// import { Leva } from 'leva';
 import './App.css';
 // import Geometries from './Geometries';
 // import LivingRoom from './LivingRoom';
@@ -7,7 +7,7 @@ import Keyboard from './Keyboard';
 function App() {
 	return (
 		<>
-			<Leva collapsed />
+			{/* <Leva collapsed /> */}
 			{/* <Geometries /> */}
 			{/* <LivingRoom /> */}
 			<Keyboard />

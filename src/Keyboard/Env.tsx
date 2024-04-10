@@ -38,11 +38,21 @@ export function Env() {
 		},
 	});
 
+	// const areaLightHelper =
+
 	return (
-		<Environment
-			preset={preset as envPreset}
-			background
-			blur={blur}
-		/>
+		<>
+			<ambientLight intensity={2.5} />
+			<rectAreaLight
+				args={[1, 1, 1]}
+				intensity={1}
+			/>
+
+			<Environment
+				preset={preset as envPreset}
+				background
+				blur={blur}
+			/>
+		</>
 	);
 }

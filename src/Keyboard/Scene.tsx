@@ -15,7 +15,10 @@ import useStore from './store';
 import { Select } from '@react-three/postprocessing';
 
 export function Scene() {
+	const { camera, scene } = useThree((state) => state);
+
 	const { phase, setPhase } = useStore();
+	const { progress, setProgress } = useStore();
 	const scroll = useScroll();
 
 	const [switchesQueued, setSwitchesQueued] = useState(false);
@@ -44,7 +47,7 @@ export function Scene() {
 
 	const keycapsVisible = useRef(false);
 
-	const { camera } = useThree((state) => state);
+	const vignetteBg = useTexture(`assets/models/Keyboard/textures/Vignette-BG.png`);
 
 	const knobNormal = useTexture(`assets/models/Keyboard/textures/Knob_Normal_Map.png`);
 	const knobRoughness = useTexture(`assets/models/Keyboard/textures/Knob_Roughness_Map.png`);
@@ -129,6 +132,10 @@ export function Scene() {
 	}, []);
 
 	useEffect(() => {
+		scene.background = vignetteBg;
+	}, []);
+
+	useEffect(() => {
 		const unsubscribePhase = useStore.subscribe(
 			(state) => state.phase,
 			(value, _oldValue) => {
@@ -197,14 +204,16 @@ export function Scene() {
 	// }, [cameraX, cameraY, cameraZ]);
 
 	useFrame(() => {
-		const r0 = scroll.offset < 0.2;
-		const r1 = scroll.offset >= 0.2 && scroll.offset < 0.5;
-		const r2 = scroll.offset >= 0.5 && scroll.offset < 0.75;
+		const r0 = scroll.offset <= 0.2;
+		const r1 = scroll.offset > 0.2 && scroll.offset <= 0.5;
+		const r2 = scroll.offset > 0.5 && scroll.offset <= 0.75;
 		const r3 = scroll.offset >= 0.75 && scroll.offset <= 1;
 
 		if (r0) {
 			camera.position.x = Math.sin(scroll.offset * 8 - 2.5) * 5;
 			camera.position.z = Math.cos(scroll.offset * 8 - 2.5) * 5 + 1;
+			setProgress(scroll.offset / 0.2);
+			console.log(progress);
 		}
 
 		if (r1) {
@@ -254,8 +263,6 @@ export function Scene() {
 
 	return (
 		<>
-			<ambientLight intensity={1} />
-
 			<Env />
 
 			{/* <AccumulativeShadows
