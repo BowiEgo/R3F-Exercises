@@ -5,6 +5,8 @@ import { useControls } from 'leva';
 import { EventChannel } from './event';
 import { useEffect } from 'react';
 import useStore from './store';
+import { Selection } from '@react-three/postprocessing';
+import Effects from './Effects';
 
 export default function LivingRoom() {
 	const { bgColor } = useControls({
@@ -18,7 +20,7 @@ export default function LivingRoom() {
 			(state) => state.phase,
 			(value, oldValue) => {
 				if (value === oldValue) return;
-				console.log(`phase change from ${oldValue} to ${value}`);
+				// console.log(`phase change from ${oldValue} to ${value}`);
 				const forward = (oldValue ?? 0) < value;
 
 				EventChannel.emit('cameraMotion_A', forward);
@@ -58,7 +60,7 @@ export default function LivingRoom() {
 	return (
 		<>
 			<Canvas
-				camera={{ position: [-5, 4, 4], fov: 45, near: 0.01 }}
+				camera={{ position: [-5, 4, 4], rotation: [0, 0, 0], fov: 45, near: 0.01 }}
 				shadows
 			>
 				<color
@@ -74,7 +76,10 @@ export default function LivingRoom() {
 				{/* <Environment preset='sunset' /> */}
 
 				<ScrollControls pages={3}>
-					<Scene />
+					<Selection>
+						<Effects />
+						<Scene />
+					</Selection>
 				</ScrollControls>
 			</Canvas>
 

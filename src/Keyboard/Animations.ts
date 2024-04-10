@@ -56,7 +56,7 @@ export function assembleTopBody({
 }) {
 	const tl = gsap.timeline({
 		paused: true,
-		defaults: { duration: 1, ease: 'none' },
+		defaults: { duration: 0.75, ease: 'none' },
 	});
 
 	const materialTargets = [
@@ -138,58 +138,6 @@ export function expandWholeBody({
 			ease: 'back.inOut',
 		}
 	);
-
-	return tl;
-}
-
-export function cameraAnimation({
-	camera,
-	cameraTarget,
-}: {
-	camera: THREE.Camera;
-	cameraTarget: THREE.Vector3;
-}) {
-	const tl = gsap.timeline({
-		paused: true,
-		defaults: { duration: 0.5, ease: 'none' },
-	});
-	tl.to(camera.position, { x: -4, y: 3, z: 4, ease: 'sine.inOut', duration: 0.1 })
-		.add('0')
-		.to(camera.position, { x: 0, y: 3, z: 6.5, ease: 'sine.inOut' })
-		.to(camera.position, {
-			x: 0,
-			y: 5,
-			z: 2.5,
-			ease: 'back.out',
-			duration: 1.5,
-		})
-		.add('1')
-		/* prettier-ignore */
-		.to([camera.position, cameraTarget], {
-			x: (index, _target, _targets) => {
-				if (index === 0) {
-					return -4;
-				} else {
-					return 1;
-				}
-			},
-			y: (index, _target, _targets) => {
-				if (index === 0) {
-					return 2;
-				} else {
-					return -1;
-				}
-			},
-			z: (index, _target, _targets) => {
-				if (index === 0) {
-					return 6;
-				} else {
-					return 0;
-				}
-			},
-			ease: 'power1.in',
-		})
-		.add('2');
 
 	return tl;
 }

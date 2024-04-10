@@ -29,9 +29,9 @@ export const Keycaps = forwardRef(function Keycaps(
 	}: {
 		nodes: any;
 		theme: number;
-		showKeycasPrimary: boolean;
-		showKeycapsSecondary: boolean;
-		showKeycapsTertiary: boolean;
+		showKeycasPrimary?: boolean;
+		showKeycapsSecondary?: boolean;
+		showKeycapsTertiary?: boolean;
 		visible?: boolean;
 	},
 	ref: ForwardedRef<any>
